@@ -24,6 +24,9 @@ class SerialUSB(Interface):
 
     def receive_message(self):
         aux = self.real_interfae.read(-1)
+        
+    def receive_message_bytes(self, size):
+        aux = self.real_interfae.read(size)
 
     def _send_byte(self, byte):
         pass
