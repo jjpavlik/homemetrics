@@ -71,11 +71,18 @@ class Arduino(Device):
         message.append(message_id)              #B1
         message.append(PING)                    #B2
 
+        logging.debug("Message ID " + str(message_id))
+        logging.debug("Sending:" + str(message))
         self._send_message(message)
         # PING Response packet should be 3 bytes long see Arduino_porotocol_draft.txt
         received_message = self._receive_message()
-        if(len(received_message) != 3):
-            print(received_message)
+        message_length = len(received_message)
+        logging.debug("Received: " + str(received_message))
+        if(message_length != 3):
+            if message_length == 0:
+                logging.warn("PING to " + self.get_name() + " Timed out")
+            else:
+                logging.error("Looks like " + self.get_name() + "returned a malformed message: " + str(received_message))
             return False
         # Check for RESPONSE and _get_message_id
         if received_message[0] == PROTOCOL|RESPONSE and received_message[1] == PING:
