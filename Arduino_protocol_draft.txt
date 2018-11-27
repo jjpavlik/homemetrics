@@ -1,0 +1,28 @@
+I think the following should be enough as protocol to reach out to the Arduino for details, sensors, health check, etc.
+
+Protocol Version 1
+
+The packets have the following format:
+
+ ___B0____ ___B1___ ___B2____ ___B3____ ___B4___ _________
+|         |        |         |         |        |
+|____|____|________|____|____|____|____|________|_________
+
+B0: High nible for protocol version (ie. 0001 for v1).
+    Lower nible for packet type (ie. Request 0000, Response 1111)
+B1: Packet ID, this field is to match packet request and responses. So technically we can have up to 255 packets in transit (not gonna happen ever xD)
+B2: High nible for Operation type (ie. Read 0000, Write 0001, Ping 1111, Control 1110)
+    Lower nible specifics of the operation (ie. read XXX sensor)
+B3: Data format (ie. int, float represented in binary, way too many options I guess...)
+B4: Number of bytes ahead that are part of this packet
+B5 to B259: Potentially data
+
+Conversations:
+
+- PING REQUEST (3 bytes)
+
+0001 1111 - P_ID XXX - 1111 0000
+
+- PING RESPONSE (3 bytes)
+
+0001 0000 - P_ID XXX - 1111 0000
