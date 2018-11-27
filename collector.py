@@ -2,6 +2,7 @@ import device
 import logging
 #import homemetricsutils
 import json
+from time import sleep
 
 DEVICES = []
 SENSORS = []
@@ -19,6 +20,7 @@ def load_device(dev):
     device_location = dev['location']
     aux = device.Arduino(device = device_type, name = device_name, access = device_access, interface = device_interface, location = device_location)
     logging.debug("Loading device "+str(device))
+    return aux
 
 def load_sensor(data):
     pass
@@ -26,8 +28,15 @@ def load_sensor(data):
 def loop():
     terminate = False
     while not terminate:
-        pass
+        for i in DEVICES:
+            state = i.ping_device()
+            if state:
+                logging.debug("Ping to device "+i.get_name()+" worked")
+            else:
+                logging.warn("Ping to device "+i.get_name()+" failed")
+        sleep(5)
     #do some house keeping
+    logging.debug("Doing some house keeping and shutting down")
 
 def main():
     FORMAT = '%(asctime)s - %(name)s - %(levelname)s - %(message)s'

@@ -29,6 +29,9 @@ class Device():
     def get_location(self):
         return self.location
 
+    def get_name(self):
+        return self.device_name
+
 class Arduino(Device):
     """
     Specification of Device for Arduino devices
