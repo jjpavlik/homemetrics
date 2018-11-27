@@ -22,7 +22,7 @@ class SerialUSB(Interface):
     def send_message(self, message):
         self.real_interfae.write(message)
 
-    def receive_message():
+    def receive_message(self):
         aux = self.real_interfae.read(-1)
 
     def _send_byte(self, byte):
