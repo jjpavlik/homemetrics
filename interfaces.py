@@ -1,4 +1,5 @@
 import serial
+import logging
 
 class Interface:
     """
@@ -24,6 +25,7 @@ class SerialUSB(Interface):
 
     def receive_message(self):
         aux = self.real_interface.read(100)
+        return aux
 
     def _send_byte(self, byte):
         pass
