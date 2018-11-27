@@ -17,16 +17,13 @@ class SerialUSB(Interface):
     def __init__(self, access = "/dev/ttyACM0"):
         super().__init__(access, interface = "SerialUSB")
         #help(serial.Serial.__init__), looks like the default parameters are good, maybe we should set the timeout?
-        self.real_interfae = serial.Serial(self.access, timeout = 2, writeTimeout = 2)
+        self.real_interface = serial.Serial(self.access, timeout = 2, writeTimeout = 2)
 
     def send_message(self, message):
-        self.real_interfae.write(message)
+        self.real_interface.write(message)
 
     def receive_message(self):
-        aux = self.real_interfae.read(-1)
-        
-    def receive_message_bytes(self, size):
-        aux = self.real_interfae.read(size)
+        aux = self.real_interface.read(100)
 
     def _send_byte(self, byte):
         pass

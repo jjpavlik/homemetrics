@@ -75,7 +75,7 @@ class Arduino(Device):
         logging.debug("Sending:" + str(message))
         self._send_message(message)
         # PING Response packet should be 3 bytes long see Arduino_porotocol_draft.txt
-        received_message = self._receive_message_bytes(3)
+        received_message = self._receive_message()
         message_length = len(received_message)
         logging.debug("Received: " + str(received_message))
         if(message_length != 3):
@@ -94,9 +94,6 @@ class Arduino(Device):
 
     def _receive_message(self):
         return self.comm.receive_message()
-
-    def _receive_message_bytes(self, size):
-        return self.comm.receive_message_bytes(size)
 
 class Dummy(Device):
     """
