@@ -25,20 +25,8 @@ def load_device(dev):
 def load_sensor(data):
     pass
 
-def loop():
-    terminate = False
-    while not terminate:
-        for i in DEVICES:
-            state = i.ping_device()
-            if state:
-                logging.debug("Ping to device "+i.get_name()+" worked")
-            else:
-                logging.warn("Ping to device "+i.get_name()+" failed")
-        sleep(5)
-    #do some house keeping
-    logging.debug("Doing some house keeping and shutting down")
-
 def main():
+    terminate = False
     FORMAT = '%(asctime)s - %(name)s - %(levelname)s - %(message)s'
     logging.basicConfig(format=FORMAT, level=logging.DEBUG)
 
@@ -52,6 +40,17 @@ def main():
         elif device['device-type'] == "sensor":
             SENSORS.append(load_sensor(device))
     logging.info("All devices loaded")
+    ####
+    while not terminate:
+        for i in DEVICES:
+            state = i.ping_device()
+            if state:
+                logging.debug("Ping to device "+i.get_name()+" worked")
+            else:
+                logging.warn("Ping to device "+i.get_name()+" failed")
+        sleep(5)
+    #do some house keeping
+    logging.debug("Doing some house keeping and shutting down")
     return 0
 #    return loop()
 
