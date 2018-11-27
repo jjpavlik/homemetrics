@@ -96,7 +96,7 @@ class Arduino(Device):
         return self.comm.receive_message()
 
     def _receive_message_bytes(self, size):
-        return self.comm.receive_message(size)
+        return self.comm.receive_message_bytes(size)
 
 class Dummy(Device):
     """
