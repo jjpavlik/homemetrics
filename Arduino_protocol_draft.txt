@@ -14,8 +14,8 @@ B1: Packet ID, this field is to match packet request and responses. So technical
 B2: High nible for Operation type (ie. Read 0000, Write 0001, Ping 1111, Control 1110)
     Lower nible specifics of the operation (ie. read XXX sensor)
 B3: Data format (ie. int, float represented in binary, way too many options I guess...)
-B4: Number of bytes ahead that are part of this packet
-B5 to B259: Potentially data
+B4: Total number of bytes in the packet. The smallest packet is 5 bytes (PING packet, request/response). If I moved this to B3, the smallest packet could be 4 bytes instead... (maybe one day).
+B5 to B255: Potentially data
 
 Conversations:
 

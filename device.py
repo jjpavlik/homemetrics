@@ -70,15 +70,17 @@ class Arduino(Device):
         message = bytearray([PROTOCOL|REQUEST]) #B0
         message.append(message_id)              #B1
         message.append(PING)                    #B2
+	message.append(0)			#B3
+	message.append(5)			#B4
 
         logging.debug("Message ID " + str(message_id))
         logging.debug("Sending:" + str(message))
         self._send_message(message)
-        # PING Response packet should be 3 bytes long see Arduino_porotocol_draft.txt
+        # PING Response packet should be 5 bytes long see Arduino_porotocol_draft.txt
         received_message = self._receive_message()
         logging.debug("Received: " + str(received_message))
         message_length = len(received_message)
-        if(message_length != 3):
+        if(message_length != 5):
             if message_length == 0:
                 logging.warn("PING to " + self.get_name() + " Timed out")
             else:
