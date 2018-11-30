@@ -70,7 +70,7 @@ boolean is_full_packet()
 
 void send_ping_response(byte packet_protocol_version, byte packet_id)
 {
-  byte respose_packet[5];
+  byte response_packet[5];
   int sent;
   response_packet[0] = packet_protocol_version | 15;
   response_packet[1] = packet_id;
@@ -78,7 +78,7 @@ void send_ping_response(byte packet_protocol_version, byte packet_id)
   response_packet[3] = 0; // Not used for ping, maybe I should rework the bytes order an put size here instead to prevent this useless byte
   response_packet[4] = 5;
 
-  sent = Serial.write(resonse_packet, 5);
+  sent = Serial.write(response_packet, 5);
   if(sent == 5)
   {
     return true;
