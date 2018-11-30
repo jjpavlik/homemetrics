@@ -68,7 +68,7 @@ boolean is_full_packet()
   return false;
 }
 
-void send_ping_response(byte packet_protocol_version, byte packet_id)
+boolean send_ping_response(byte packet_protocol_version, byte packet_id)
 {
   byte response_packet[5];
   int sent;
