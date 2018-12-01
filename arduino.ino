@@ -214,7 +214,7 @@ void loop(void)
     if(Serial.available() > 0)
     {
       //there's data to pull from the UART
-      Serial.println("OOPs");
+      //Serial.println("OOPs");
       pull_data();
       if(is_full_packet())
       {

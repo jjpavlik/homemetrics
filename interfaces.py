@@ -21,7 +21,7 @@ class SerialUSB(Interface):
         self.real_interface = serial.Serial(self.access, timeout = 2, writeTimeout = 2)
 
     def send_message(self, message):
-        self.real_interface.write(message)
+        return self.real_interface.write(message)
 
     def receive_message(self):
         aux = self.real_interface.read(100)

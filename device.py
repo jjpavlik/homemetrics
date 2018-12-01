@@ -86,7 +86,8 @@ class Arduino(Device):
 
         logging.debug("Message ID " + str(message_id))
         logging.debug("Sending: " + str(message))
-        self._send_message(message)
+        sent = self._send_message(message)
+        logging.debug("Bytes sent: " + str(sent))
         # Now wait for the response
         received_message = self._receive_message()
         logging.debug("Received: " + str(received_message))
@@ -136,7 +137,8 @@ class Arduino(Device):
 
         logging.debug("Message ID " + str(message_id))
         logging.debug("Sending:" + str(message))
-        self._send_message(message)
+        sent = self._send_message(message)
+        logging.debug("Bytes sent: " + str(sent))
         # PING Response packet should be 5 bytes long see Arduino_porotocol_draft.txt
         received_message = self._receive_message()
         logging.debug("Received: " + str(received_message))
