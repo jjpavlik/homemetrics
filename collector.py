@@ -18,7 +18,8 @@ def load_device(dev):
     device_access = dev['access']
     device_interface = dev['interface']
     device_location = dev['location']
-    aux = device.Arduino(device = device_type, name = device_name, access = device_access, interface = device_interface, location = device_location)
+    device_sensors = dev['available-sensors']
+    aux = device.Arduino(device = device_type, name = device_name, access = device_access, interface = device_interface, location = device_location, available_sensors = device_sensors)
     logging.debug("Loading device "+str(device))
     return aux
 
@@ -42,12 +43,14 @@ def main():
     logging.info("All devices loaded")
     ####
     while not terminate:
-        for i in DEVICES:
-            state = i.ping_device()
+        for dev in DEVICES:
+            state = dev.ping_device()
             if state:
-                logging.debug("Ping to device "+i.get_name()+" worked")
+                logging.debug("Ping to device " + dev.get_name() + " worked")
+                for sensor in dev.get_sensors():
+                    value = dev.read_sensor_data(sensor)
             else:
-                logging.warn("Ping to device "+i.get_name()+" failed")
+                logging.warn("Ping to device " + dev.get_name() + " failed")
         sleep(5)
     #do some house keeping
     logging.debug("Doing some house keeping and shutting down")

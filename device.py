@@ -25,12 +25,19 @@ class Device():
         self.interface = interface
         self.location = location
         self.message_id = 0
+        self.available_sensors = []
 
     def get_location(self):
         return self.location
 
     def get_name(self):
         return self.device_name
+
+    def get_sensors_list(self):
+        return self.available_sensors
+
+    def add_sensor(self, sensor):
+        self.available_sensors.append[sensor]
 
 class Arduino(Device):
     """
@@ -43,11 +50,38 @@ class Arduino(Device):
             self.comm = interfaces.SerialUSB(access)
         else:
             raise ValueError("Unknown interface: " + self.interface)
-        self.sensors = []
-        self.buffer_size = 260
+        self.buffer_size = 256
 
     def read_sensor(self, sensor):
-        pass
+        """
+        Reading a given sensor from the device
+        """
+        message_id = self._get_message_id()
+        message = bytearray([PROTOCOL|REQUEST]) #B0
+        message.append(message_id)              #B1
+        message.append(READ)                    #B2
+        message.append(0)			#B3
+        message.append(5)			#B4
+
+        logging.debug("Message ID " + str(message_id))
+        logging.debug("Sending:" + str(message))
+        self._send_message(message)
+        received_message = self._receive_message()
+        logging.debug("Received: " + str(received_message))
+        message_length = len(received_message)
+
+    def get_device_sensors(self):
+        """
+        Ideally, this would send a message to the Arduino asking for the available sensors. 
+        """
+        message_id = self._get_message_id()
+        message = bytearray([PROTOCOL|REQUEST]) #B0
+        message.append(message_id)              #B1
+        message.append(READ)                    #B2
+        message.append(0)			#B3
+        message.append(5)			#B4
+
+
 
     def read_details(self):
         pass

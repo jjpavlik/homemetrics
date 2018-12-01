@@ -1,13 +1,13 @@
 #include <OneWire.h>
 #include <DallasTemperature.h>
- 
+
 // Data wire is plugged into pin 2 on the Arduino
 #define ONE_WIRE_BUS 2
- 
-// Setup a oneWire instance to communicate with any OneWire devices 
+
+// Setup a oneWire instance to communicate with any OneWire devices
 // (not just Maxim/Dallas temperature ICs)
 OneWire oneWire(ONE_WIRE_BUS);
- 
+
 // Pass our oneWire reference to Dallas Temperature.
 DallasTemperature sensors(&oneWire);
 
@@ -19,7 +19,7 @@ byte buffer_index;
 
 // Packet ready
 boolean packet_ready;
- 
+
 void setup(void)
 {
   // start serial port
@@ -31,7 +31,7 @@ void setup(void)
   packet_ready = false;
   buffer_index = 0;
 }
- 
+
 void float2array(float *number, byte *b_array)
 {
   b_array[0] = (byte)*number;
@@ -50,7 +50,7 @@ void pull_data()
   }
 }
 
-// Remember byte 4 defines the number of bytes of the whole packet. 
+// Remember byte 4 defines the number of bytes of the whole packet.
 // So if I haven't received B4 yet we have to wait for it to confirm the whole packet has been received.
 boolean is_full_packet()
 {
@@ -86,12 +86,29 @@ boolean send_ping_response(byte packet_protocol_version, byte packet_id)
   return false;
 }
 
+boolean send_available_sensors(byte packet_protocol_version, byte packet_id)
+{
+    
+}
+
+boolean send_sensor_read(byte packet_protocol_version, byte packet_id)
+{
+    // Maybe this should be a single global buffer, to prevent taking stack memory in every send_XXX function...
+    byte response_packet[10];
+    int sent;
+    response_packet[0] = packet_protocol_version | 15;
+    response_packet[1] = packet_id;
+    response_packet[2] = 240;
+    response_packet[3] = 0; // Not used for ping, maybe I should rework the bytes order an put size here instead to prevent this useless byte
+    response_packet[4] = 5;
+}
+
 // This function reads the full packet and actions on it according to whether it's a request or a response
 boolean process_packet()
 {
   byte packet_protocol_version, packet_type, packet_id, packet_operation_type, packet_operation_specific, packet_data_format, packet_size;
   boolean is_request = false;
-  
+
   packet_protocol_version = receive_buffer[0] & 240; //get the higher nible
   packet_type = receive_buffer[0] & 15; //get the lower nible
   packet_id = receive_buffer[1];
@@ -105,14 +122,14 @@ boolean process_packet()
   {
     is_request = true;
   }
-  
+
   if(is_request)
   {
     switch(packet_operation_type)
     {
       case 240:// PING request
         send_ping_response(packet_protocol_version,packet_id);
-        break; 
+        break;
       default:
         send_ping_response(packet_protocol_version,packet_id);
         break;
@@ -169,8 +186,8 @@ void loop2(void)
   //Serial.print("Float turned into 4 bytes array: ");
   float2array(&temp, temp_array);
   Serial.write(temp_array, 4);
-//  Serial.print(aux); // Why "byIndex"? 
-    // You can have more than one IC on the same bus. 
+//  Serial.print(aux); // Why "byIndex"?
+    // You can have more than one IC on the same bus.
     // 0 refers to the first IC on the wire
   delay(1000);
 }
