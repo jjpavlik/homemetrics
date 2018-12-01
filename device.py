@@ -40,7 +40,7 @@ class Device():
         return self.available_sensors
 
     def add_sensor(self, sensor):
-        self.available_sensors.append[sensor]
+        self.available_sensors.append(sensor)
 
 class Arduino(Device):
     """
