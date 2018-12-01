@@ -54,10 +54,10 @@ Where:
   * humidity = 0001
   * etc
 * format will be the lower nible of the first byte after "\n" and can be
- * int = 0000
- * float = 0001
- * char = 0010
- * etc
+  * int = 0000
+  * float = 0001
+  * char = 0010
+  * etc
 
 #### READ DEVICE SENSORS
 ```
