@@ -72,6 +72,7 @@ void pull_data()
     receive_buffer[buffer_index] = Serial.read();
     buffer_index++;
   }
+  Serial.println(buffer_index);
 }
 
 // Remember byte 4 defines the number of bytes of the whole packet.
