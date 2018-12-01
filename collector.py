@@ -40,11 +40,12 @@ def main():
         elif device['device-type'] == "sensor":
             SENSORS.append(load_sensor(device))
     logging.info("All devices loaded")
+    sleep(5)
     ####
     for dev in DEVICES:
         logging.info("Identifying devices for " + dev.get_name())
         dev.identify_device_sensors()
-
+    sleep(5)
     while not terminate:
         for dev in DEVICES:
             state = dev.ping_device()
