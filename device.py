@@ -6,11 +6,12 @@ PROTOCOL = 16 # 0001 ____
 RESPONSE = 15 # ____ 1111
 REQUEST = 0 # ____ 0000
 
+#Higher nible B2
 READ = 0  # 0000 ____
 WRITE = 1 # 0001 ____
 PING = 240 # 1111 0000
 CONTROL = 224 #1110 ____
-#Lower nible defines the sensor ...
+#Lower nible B2 defines the sensor ...
 GET_SENSORS = 15 #____ 1111
 
 
@@ -86,8 +87,7 @@ class Arduino(Device):
 
         logging.debug("Message ID " + str(message_id))
         logging.debug("Sending: " + str(message))
-        sent = self._send_message(message)
-        logging.debug("Bytes sent: " + str(sent))
+        self._send_message(message)
         # Now wait for the response
         received_message = self._receive_message()
         logging.debug("Received: " + str(received_message))
@@ -137,8 +137,7 @@ class Arduino(Device):
 
         logging.debug("Message ID " + str(message_id))
         logging.debug("Sending:" + str(message))
-        sent = self._send_message(message)
-        logging.debug("Bytes sent: " + str(sent))
+        self._send_message(message)
         # PING Response packet should be 5 bytes long see Arduino_porotocol_draft.txt
         received_message = self._receive_message()
         logging.debug("Received: " + str(received_message))
