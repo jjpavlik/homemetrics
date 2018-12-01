@@ -91,7 +91,7 @@ class Arduino(Device):
         received_message = self._receive_message()
         logging.debug("Received: " + str(received_message))
         message_length = len(received_message)
-        _parse_discovered_sensors(self, received_message)
+        self._parse_discovered_sensors( received_message)
         return true
 
     def _parse_discovered_sensors(self, message):
