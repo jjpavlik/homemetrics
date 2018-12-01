@@ -180,18 +180,13 @@ boolean process_packet()
 
   if(is_request)
   {
-    switch(packet_operation_type)
+    switch(packet_operation_type|packet_operation_specific)
     {
       case PING:// PING request
         send_ping_response(packet_protocol_version,packet_id);
         break;
-      case CONTROL:
-        switch(packet_operation_specific)
-        {
-          case GET_SENSORS:
-            send_available_sensors(packet_protocol_version,packet_id);
-          break;
-        }
+      case CONTROL|GET_SENSORS:
+        send_available_sensors(packet_protocol_version,packet_id);
         break;
       default:
         send_ping_response(packet_protocol_version,packet_id);
