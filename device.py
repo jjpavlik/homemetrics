@@ -86,8 +86,8 @@ class Arduino(Device):
 
         logging.debug("Message ID " + str(message_id))
         logging.debug("Sending: " + str(message))
-        # Now wait for the response
         self._send_message(message)
+        # Now wait for the response
         received_message = self._receive_message()
         logging.debug("Received: " + str(received_message))
         message_length = len(received_message)
