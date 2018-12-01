@@ -181,8 +181,16 @@ boolean process_packet()
   {
     switch(packet_operation_type)
     {
-      case 240:// PING request
+      case PING:// PING request
         send_ping_response(packet_protocol_version,packet_id);
+        break;
+      case CONTROL:
+        switch(packet_type)
+        {
+          case GET_SENSORS:
+            send_available_sensors(packet_protocol_version,packet_id);
+          break;
+        }
         break;
       default:
         send_ping_response(packet_protocol_version,packet_id);
