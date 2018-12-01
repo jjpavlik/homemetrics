@@ -72,7 +72,7 @@ class Arduino(Device):
         logging.debug("Received: " + str(received_message))
         message_length = len(received_message)
 
-    def get_device_sensors(self):
+    def identify_device_sensors(self):
         """
         Ideally, this would send a message to the Arduino asking for the available sensors.
         Then parse the sensors and keep them in available_sensors[]
