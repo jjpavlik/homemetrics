@@ -188,6 +188,7 @@ boolean process_packet()
         switch(packet_operation_specific)
         {
           case GET_SENSORS:
+            Serial.println("Oops");
             send_available_sensors(packet_protocol_version,packet_id);
           break;
         }
