@@ -4,9 +4,11 @@ I think the following should be enough as protocol to reach out to the Arduino f
 
 The packets have the following format:
 
+```
  ___B0____ ___B1___ ___B2____ ___B3____ ___B4___ _________
 |         |        |         |         |        |         ...
 |____|____|________|____|____|____|____|________|_________
+```
 
 B0: High nible for protocol version (ie. 0001 for v1).
     Lower nible for packet type (ie. Request 0000, Response 1111)
@@ -22,13 +24,13 @@ B5 to B255: Potentially data
 ### PING or health Check
 
 #### PING REQUEST (5 bytes)
-
+```
 0001 0000 - P_ID XXX - 1111 0000 - 0000 0000 - 0000 0101
-
+```
 #### PING RESPONSE (5 bytes)
-
+```
 0001 1111 - P_ID XXX - 1111 0000 - 0000 0000 - 0000 0101
-
+```
 ### Read available devices:
 
 This message should provide the device the chance to tell the collector what are the available sensors it can later on request. The request is pretty straight forward.
@@ -51,5 +53,6 @@ Where:
 ** etc
 
 #### READ DEVICE SENSORS
-
+```
 0001 0000 - P_ID XXX - 1111 0000 - 0000 0000 - 0000 0101
+```
