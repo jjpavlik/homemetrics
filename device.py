@@ -105,7 +105,7 @@ class Arduino(Device):
         while index < message_length:
             name = name + str(message[index])
             index = index + 1
-            if message[index] == '\n':
+            if message[index] == 10: #'\n'
                 index = index + 1
                 sensor = {'name':name, 'type':message[index] & 240, 'format': message[index] & 15}
                 logging.debug("Sensor discovered: " + sensor)
