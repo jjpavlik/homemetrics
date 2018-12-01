@@ -21,38 +21,41 @@ B5 to B255: Potentially data
 
 ## Conversations:
 
-### PING or health Check
+### PING
+
+This is a simple ping/pong message for health check, to confirm the device is responsive.
 
 #### PING REQUEST (5 bytes)
 ```
-0001 0000 - P_ID XXX - 1111 0000 - 0000 0000 - 0000 0101
+0001 0000 - PACKET_ID - 1111 0000 - 0000 0000 - 0000 0101
 ```
 #### PING RESPONSE (5 bytes)
 ```
-0001 1111 - P_ID XXX - 1111 0000 - 0000 0000 - 0000 0101
+0001 1111 - PACKET_ID - 1111 0000 - 0000 0000 - 0000 0101
 ```
 ### Read available devices:
 
 This message should provide the device the chance to tell the collector what are the available sensors it can later on request. The request is pretty straight forward.
 However the response can be complex.Fromat should be something like (starting in B5):
 
+```
 sensor_name\n[type|format]
-
+```
 Where:
 
 * sensor_name is a char array, 2 or more bytes.
 * "\n" byte will act as separator between sensors.
 * type will be the higher nible of the first byte after "\n" and can be
-** temp = 0000
-** humidity = 0001
-** etc
+ * temp = 0000
+ * humidity = 0001
+ * etc
 * format will be the lower nible of the first byte after "\n" and can be
-** int = 0000
-** float = 0001
-** char = 0010
-** etc
+ * int = 0000
+ * float = 0001
+ * char = 0010
+ * etc
 
 #### READ DEVICE SENSORS
 ```
-0001 0000 - P_ID XXX - 1111 0000 - 0000 0000 - 0000 0101
+0001 0000 - PACKET_ID - 1111 0000 - 0000 0000 - 0000 0101
 ```
