@@ -85,7 +85,7 @@ class Arduino(Device):
         message.append(5)			#B4
 
         logging.debug("Message ID " + str(message_id))
-        logging.debug("Sending:" + str(message))
+        logging.debug("Sending: " + str(message))
         # Now wait for the response
         self._send_message(message)
         received_message = self._receive_message()
