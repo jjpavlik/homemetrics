@@ -78,6 +78,7 @@ void pull_data()
 // So if I haven't received B4 yet we have to wait for it to confirm the whole packet has been received.
 boolean is_full_packet()
 {
+  Serial.println("OOPs");
   byte packet_size;
   if(buffer_index < 5)
   {
@@ -181,7 +182,6 @@ boolean process_packet()
   {
     switch(packet_operation_type)
     {
-      Serial.println(packet_operation_type);
       case PING:// PING request
         send_ping_response(packet_protocol_version,packet_id);
         break;
