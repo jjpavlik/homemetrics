@@ -17,7 +17,7 @@ B0: High nible for protocol version (ie. 0001 for v1).
     Lower nible for packet type (ie. Request 0000, Response 1111)
 B1: Packet ID, this field is to match packet request and responses. So technically we can have up to 255 packets in transit (not gonna happen ever xD)
 B2: High nible for Operation type (ie. Read 0000, Write 0001, Ping 1111, Control 1110)
-    Lower nible specifics of the operation (ie. read XXX sensor)
+    Lower nible specifics of the operation (ie. read XXX sensor). Use 1111 to list sensors.
 B3: Data format (ie. int, float represented in binary, way too many options I guess...)
 B4: Total number of bytes in the packet. The smallest packet is 5 bytes (PING packet, request/response). If I moved this to B3, the smallest packet could be 4 bytes instead... (maybe one day).
 B5 to B255: Potentially data
@@ -59,7 +59,7 @@ Where:
   * char = 0010
   * etc
 
-#### READ DEVICE SENSORS
+#### GET DEVICE SENSORS (5 bytes)
 ```
-0001 0000 - PACKET_ID - 1111 0000 - 0000 0000 - 0000 0101
+0001 0000 - PACKET_ID - 1110 1111 - 0000 0000 - 0000 0101
 ```

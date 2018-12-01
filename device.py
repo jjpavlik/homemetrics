@@ -2,14 +2,16 @@ import serial
 import interfaces
 import logging
 
-PROTOCOL = 16 # 0001 ____
+PROTOCOL = 17 # 0001 ____
 RESPONSE = 15 # ____ 1111
 REQUEST = 0 # ____ 0000
 
 READ = 0  # 0000 ____
 WRITE = 1 # 0001 ____
 PING = 240 # 1111 0000
+CONTROL = 224 #1110 ____
 #Lower nible defines the sensor ...
+GET_SENSORS = 15 #____ 1111
 
 
 
@@ -72,16 +74,41 @@ class Arduino(Device):
 
     def get_device_sensors(self):
         """
-        Ideally, this would send a message to the Arduino asking for the available sensors. 
+        Ideally, this would send a message to the Arduino asking for the available sensors.
+        Then parse the sensors and keep them in available_sensors[]
         """
         message_id = self._get_message_id()
         message = bytearray([PROTOCOL|REQUEST]) #B0
         message.append(message_id)              #B1
-        message.append(READ)                    #B2
+        message.append(CONTROL|GET_SENSORS)                    #B2
         message.append(0)			#B3
         message.append(5)			#B4
 
+        logging.debug("Message ID " + str(message_id))
+        logging.debug("Sending:" + str(message))
+        # Now wait for the response
+        self._send_message(message)
+        received_message = self._receive_message()
+        logging.debug("Received: " + str(received_message))
+        message_length = len(received_message)
+        _parse_discovered_sensors(self, received_message)
+        return true
 
+    def _parse_discovered_sensors(self, message):
+        """
+        Parse the sensors provided by the device.
+        """
+        message_length = len(message)
+        name = ""
+        index = 5
+        while index < message_length:
+            name.join(map(chr,message[index]))
+            index = index + 1
+            if message[index] == '\n':
+                index = index + 1
+                self.add_sensor({'name':name, 'type':message[index] & 240, 'format': message[index] & 15})
+                index = index + 1
+                name = ""
 
     def read_details(self):
         pass

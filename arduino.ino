@@ -17,6 +17,30 @@ byte receive_buffer[BUFFER_SIZE];
 // Index of the next available byte in the buffer
 byte buffer_index;
 
+//B0
+// Higher nible
+#define PROTOCOL 17 // 0001 ____
+// Lower nible
+#define RESPONSE 15 // ____ 1111
+#define REQUEST 0 // ____ 0000
+
+// B2
+// Higher nibble
+#define READ 0  // 0000 ____
+#define WRITE 1 // 0001 ____
+#define PING 240 // 1111 0000
+#define CONTROL 224 // 1110 ____
+//Lower nible defines the sensor ...
+#define GET_SENSORS 15 // ____ 1111
+
+// Sensors
+// Higher nibble is type
+#define TEMP 0
+// Lower nible is format
+#define INTEGER 0
+#define FLOAT 1
+
+
 // Packet ready
 boolean packet_ready;
 
@@ -72,9 +96,9 @@ boolean send_ping_response(byte packet_protocol_version, byte packet_id)
 {
   byte response_packet[5];
   int sent;
-  response_packet[0] = packet_protocol_version | 15;
+  response_packet[0] = packet_protocol_version | RESPONSE;
   response_packet[1] = packet_id;
-  response_packet[2] = 240;
+  response_packet[2] = PING;
   response_packet[3] = 0; // Not used for ping, maybe I should rework the bytes order an put size here instead to prevent this useless byte
   response_packet[4] = 5;
 
@@ -86,9 +110,39 @@ boolean send_ping_response(byte packet_protocol_version, byte packet_id)
   return false;
 }
 
+// This message lets the collector know which sensors are available on this devices
+// along with the name, and the format of the data.
 boolean send_available_sensors(byte packet_protocol_version, byte packet_id)
 {
-    
+    // Maybe this should be a single global buffer, to prevent taking stack memory in every send_XXX function...
+    byte response_packet[20];
+    int sent;
+    response_packet[0] = packet_protocol_version | RESPONSE;
+    response_packet[1] = packet_id;
+    response_packet[2] = CONTROL | GET_SENSORS;
+    response_packet[3] = 0; // Not used for ping, maybe I should rework the bytes order an put size here instead to prevent this useless byte
+    response_packet[4] = 19; // HEY, can we automatically calculate the size?
+    response_packet[5] = 't';
+    response_packet[6] = 'e';
+    response_packet[7] = 'm';
+    response_packet[8] = 'p';
+    response_packet[9] = '1';
+    response_packet[10] = '\n';
+    response_packet[11] = TEMP | INTEGER;
+    response_packet[12] = 't';
+    response_packet[13] = 'e';
+    response_packet[14] = 'm';
+    response_packet[15] = 'p';
+    response_packet[16] = '2';
+    response_packet[17] = '\n';
+    response_packet[18] = TEMP | FLOAT;
+
+    sent = Serial.write(response_packet, 19);
+    if(sent == 19)
+    {
+      return true;
+    }
+    return false;
 }
 
 boolean send_sensor_read(byte packet_protocol_version, byte packet_id)
@@ -96,7 +150,7 @@ boolean send_sensor_read(byte packet_protocol_version, byte packet_id)
     // Maybe this should be a single global buffer, to prevent taking stack memory in every send_XXX function...
     byte response_packet[10];
     int sent;
-    response_packet[0] = packet_protocol_version | 15;
+    response_packet[0] = packet_protocol_version | RESPONSE;
     response_packet[1] = packet_id;
     response_packet[2] = 240;
     response_packet[3] = 0; // Not used for ping, maybe I should rework the bytes order an put size here instead to prevent this useless byte
