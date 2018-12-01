@@ -10,6 +10,9 @@ The packets have the following format:
 |____|____|________|____|____|____|____|________|_________
 ```
 
+## Description:
+
+```
 B0: High nible for protocol version (ie. 0001 for v1).
     Lower nible for packet type (ie. Request 0000, Response 1111)
 B1: Packet ID, this field is to match packet request and responses. So technically we can have up to 255 packets in transit (not gonna happen ever xD)
@@ -18,6 +21,7 @@ B2: High nible for Operation type (ie. Read 0000, Write 0001, Ping 1111, Control
 B3: Data format (ie. int, float represented in binary, way too many options I guess...)
 B4: Total number of bytes in the packet. The smallest packet is 5 bytes (PING packet, request/response). If I moved this to B3, the smallest packet could be 4 bytes instead... (maybe one day).
 B5 to B255: Potentially data
+```
 
 ## Conversations:
 
@@ -46,14 +50,14 @@ Where:
 * sensor_name is a char array, 2 or more bytes.
 * "\n" byte will act as separator between sensors.
 * type will be the higher nible of the first byte after "\n" and can be
- * temp = 0000
- * humidity = 0001
- * etc
+⋅⋅* temp = 0000
+⋅⋅* humidity = 0001
+⋅⋅* etc
 * format will be the lower nible of the first byte after "\n" and can be
- * int = 0000
- * float = 0001
- * char = 0010
- * etc
+⋅⋅* int = 0000
+⋅⋅* float = 0001
+⋅⋅* char = 0010
+⋅⋅* etc
 
 #### READ DEVICE SENSORS
 ```
