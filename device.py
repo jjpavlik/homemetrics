@@ -108,7 +108,7 @@ class Arduino(Device):
             if message[index] == 10: #'\n'
                 index = index + 1
                 sensor = {'name':name, 'type':message[index] & 240, 'format': message[index] & 15}
-                logging.debug("Sensor discovered: " + str(sensor)
+                logging.debug("Sensor discovered: " + str(sensor))
                 self.add_sensor(sensor)
                 index = index + 1
                 name = ""
