@@ -43,7 +43,7 @@ def main():
     ####
     for dev in DEVICES:
         logging.info("Identifying devices for " + dev.get_name())
-        #dev.identify_device_sensors()
+        dev.identify_device_sensors()
 
     while not terminate:
         for dev in DEVICES:

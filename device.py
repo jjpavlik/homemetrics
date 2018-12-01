@@ -2,7 +2,7 @@ import serial
 import interfaces
 import logging
 
-PROTOCOL = 17 # 0001 ____
+PROTOCOL = 16 # 0001 ____
 RESPONSE = 15 # ____ 1111
 REQUEST = 0 # ____ 0000
 

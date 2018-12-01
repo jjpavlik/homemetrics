@@ -182,7 +182,6 @@ boolean process_packet()
   {
     switch(packet_operation_type)
     {
-      Serial.println("SWITCH");
       case PING:// PING request
         send_ping_response(packet_protocol_version,packet_id);
         break;
