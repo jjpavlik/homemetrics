@@ -185,7 +185,7 @@ boolean process_packet()
         send_ping_response(packet_protocol_version,packet_id);
         break;
       case CONTROL:
-        switch(packet_type)
+        switch(packet_operation_specific)
         {
           case GET_SENSORS:
             send_available_sensors(packet_protocol_version,packet_id);
