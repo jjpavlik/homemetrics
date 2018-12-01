@@ -3,8 +3,8 @@ import interfaces
 import logging
 
 PROTOCOL = 16 # 0001 ____
-RESPONSE = 0 # ____ 0000
-REQUEST = 15 # ____ 1111
+RESPONSE = 15 # ____ 1111
+REQUEST = 0 # ____ 0000
 
 READ = 0  # 0000 ____
 WRITE = 1 # 0001 ____
@@ -70,8 +70,8 @@ class Arduino(Device):
         message = bytearray([PROTOCOL|REQUEST]) #B0
         message.append(message_id)              #B1
         message.append(PING)                    #B2
-	message.append(0)			#B3
-	message.append(5)			#B4
+        message.append(0)			#B3
+        message.append(5)			#B4
 
         logging.debug("Message ID " + str(message_id))
         logging.debug("Sending:" + str(message))
@@ -87,7 +87,7 @@ class Arduino(Device):
                 logging.error("Looks like " + self.get_name() + " returned a malformed message: " + str(received_message))
             return False
         # Check for RESPONSE and _get_message_id
-        if received_message[0] == PROTOCOL|RESPONSE and received_message[1] == PING:
+        if received_message[0] == PROTOCOL|RESPONSE and received_message[2] == PING:
             return True
         return False
 

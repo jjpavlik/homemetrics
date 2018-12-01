@@ -15,7 +15,7 @@ DallasTemperature sensors(&oneWire);
 #define BUFFER_SIZE 256
 byte receive_buffer[BUFFER_SIZE];
 // Index of the next available byte in the buffer
-int buffer_index;
+byte buffer_index;
 
 // Packet ready
 boolean packet_ready;
@@ -54,14 +54,14 @@ void pull_data()
 // So if I haven't received B4 yet we have to wait for it to confirm the whole packet has been received.
 boolean is_full_packet()
 {
-  int packet_size;
+  byte packet_size;
   if(buffer_index < 5)
   {
     return false;
   }
   // see what the size is according to B4 and compare it with buffer_index to see if all the byte have arrived
   packet_size = receive_buffer[4];
-  if(packet_size == (buffer_index - 1))
+  if(packet_size == buffer_index)
   {
     return true;
   }
