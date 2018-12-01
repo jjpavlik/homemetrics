@@ -50,14 +50,14 @@ Where:
 * sensor_name is a char array, 2 or more bytes.
 * "\n" byte will act as separator between sensors.
 * type will be the higher nible of the first byte after "\n" and can be
-⋅⋅* temp = 0000
-⋅⋅* humidity = 0001
-⋅⋅* etc
+ * temp = 0000
+ * humidity = 0001
+ * etc
 * format will be the lower nible of the first byte after "\n" and can be
-⋅⋅* int = 0000
-⋅⋅* float = 0001
-⋅⋅* char = 0010
-⋅⋅* etc
+ * int = 0000
+ * float = 0001
+ * char = 0010
+ * etc
 
 #### READ DEVICE SENSORS
 ```
