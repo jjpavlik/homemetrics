@@ -103,7 +103,7 @@ class Arduino(Device):
         name = ""
         index = 5
         while index < message_length:
-            name.join(message[index])
+            name = name + str(message[index])
             index = index + 1
             if message[index] == '\n':
                 index = index + 1
