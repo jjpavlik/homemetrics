@@ -52,7 +52,7 @@ def main():
             if state:
                 logging.debug("Ping to device " + dev.get_name() + " worked")
                 logging.debug("Reading sensor 0")
-                aux = dev.read_sensor_data(0)
+                aux = dev.read_sensor(0)
                 logging.debug("Read: " + str(aux))
                 #for sensor in dev.get_sensors():
                 #    value = dev.read_sensor_data(sensor)

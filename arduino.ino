@@ -206,7 +206,7 @@ boolean process_packet()
         send_available_sensors(packet_protocol_version, packet_id);
         break;
       case READ | TEMP1:
-        send_sensor_read(packet_protocol_version, packet_id, TEMP1)
+        send_sensor_read(packet_protocol_version, packet_id, TEMP1);
         break;
       default:
         send_ping_response(packet_protocol_version, packet_id);
