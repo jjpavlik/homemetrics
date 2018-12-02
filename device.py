@@ -55,7 +55,7 @@ class Arduino(Device):
             raise ValueError("Unknown interface: " + self.interface)
         self.buffer_size = 256
 
-    def read_sensor(self, sensor):
+    def read_sensor(self, sensor_id):
         """
         Reading a given sensor from the device
         """
@@ -63,7 +63,7 @@ class Arduino(Device):
         message = bytearray([PROTOCOL|REQUEST]) #B0
         message.append(message_id)              #B1
         message.append(READ)                    #B2
-        message.append(0)			#B3
+        message.append(sensor_id)			#B3
         message.append(5)			#B4
 
         logging.debug("Message ID " + str(message_id))
@@ -71,7 +71,7 @@ class Arduino(Device):
         self._send_message(message)
         received_message = self._receive_message()
         logging.debug("Received: " + str(received_message))
-        message_length = len(received_message)
+        return self._parse_sensor_read(message)
 
     def identify_device_sensors(self):
         """
@@ -95,9 +95,22 @@ class Arduino(Device):
         self._parse_discovered_sensors(received_message)
         return True
 
+    def _parse_sensor_read(self, message):
+        """
+        Pull the sensor read out of the message_id
+        """
+        message_length = len(message)
+        data = ""
+        index = 5
+        while index < message_length:
+            name = name + str(message[index])
+            index = index + 1
+        return data
+
     def _parse_discovered_sensors(self, message):
         """
-        Parse the sensors provided by the device.
+        Parse the sensors provided by the device. Remember format is:
+        sensor_name\n[type|format]
         """
         message_length = len(message)
         name = ""

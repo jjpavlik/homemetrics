@@ -1,5 +1,6 @@
 #include <OneWire.h>
 #include <DallasTemperature.h>
+#include <stdlib.h>
 
 // Data wire is plugged into pin 2 on the Arduino
 #define ONE_WIRE_BUS 2
@@ -32,6 +33,8 @@ byte buffer_index;
 #define CONTROL 224 // 1110 ____
 //Lower nible defines the sensor ...
 #define GET_SENSORS 15 // ____ 1111
+#define TEMP1 0
+#define TEMP2 1
 
 // Sensors
 // Higher nibble is type
@@ -39,6 +42,7 @@ byte buffer_index;
 // Lower nible is format
 #define INTEGER 0
 #define FLOAT 1
+#define CHAR 2
 
 
 // Packet ready
@@ -146,16 +150,29 @@ boolean send_available_sensors(byte packet_protocol_version, byte packet_id)
     return false;
 }
 
-boolean send_sensor_read(byte packet_protocol_version, byte packet_id)
+boolean send_sensor_read(byte packet_protocol_version, byte packet_id, byte sensor)
 {
     // Maybe this should be a single global buffer, to prevent taking stack memory in every send_XXX function...
-    byte response_packet[10];
+    byte response_packet[15];
     int sent;
+    float temp;
+
     response_packet[0] = packet_protocol_version | RESPONSE;
     response_packet[1] = packet_id;
-    response_packet[2] = 240;
-    response_packet[3] = 0; // Not used for ping, maybe I should rework the bytes order an put size here instead to prevent this useless byte
-    response_packet[4] = 5;
+    response_packet[2] = READ | TEMP1;
+    response_packet[3] = 0;
+//    response_packet[4] = 5;
+
+    switch (sensor) {
+        case TEMP1:
+            sensors.requestTemperatures(); // Send the command to get temperatures
+            temp = sensors.getTempCByIndex(0);
+            dtostrf(temp, 3, 1, &response_packet[5]); //So the first byte should start here, and considering precision is 1, this should be up to 3 bytes.
+            response_packet[4] = 8;
+            sent = Serial.write(response_packet, 8);
+        break;
+    }
+    return true;
 }
 
 // This function reads the full packet and actions on it according to whether it's a request or a response
@@ -180,16 +197,19 @@ boolean process_packet()
 
   if(is_request)
   {
-    switch(packet_operation_type|packet_operation_specific)
+    switch(packet_operation_type | packet_operation_specific)
     {
       case PING:// PING request
-        send_ping_response(packet_protocol_version,packet_id);
+        send_ping_response(packet_protocol_version, packet_id);
         break;
-      case CONTROL|GET_SENSORS:
-        send_available_sensors(packet_protocol_version,packet_id);
+      case CONTROL | GET_SENSORS:
+        send_available_sensors(packet_protocol_version, packet_id);
+        break;
+      case READ | TEMP1:
+        send_sensor_read(packet_protocol_version, packet_id, TEMP1)
         break;
       default:
-        send_ping_response(packet_protocol_version,packet_id);
+        send_ping_response(packet_protocol_version, packet_id);
         break;
     }
   }
