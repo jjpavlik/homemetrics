@@ -103,7 +103,7 @@ class Arduino(Device):
         data = ""
         index = 5
         while index < message_length:
-            name = name + str(message[index])
+            data = data + str(message[index])
             index = index + 1
         return data
 

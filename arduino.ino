@@ -167,9 +167,9 @@ boolean send_sensor_read(byte packet_protocol_version, byte packet_id, byte sens
         case TEMP1:
             sensors.requestTemperatures(); // Send the command to get temperatures
             temp = sensors.getTempCByIndex(0);
-            dtostrf(temp, 3, 1, &response_packet[5]); //So the first byte should start here, and considering precision is 1, this should be up to 3 bytes.
-            response_packet[4] = 8;
-            sent = Serial.write(response_packet, 8);
+            dtostrf(temp, 4, 1, &response_packet[5]); //So the first byte should start here, and considering precision is 1, this should be up to 3 bytes.
+            response_packet[4] = 9;
+            sent = Serial.write(response_packet, 9);
         break;
     }
     return true;
