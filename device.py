@@ -71,7 +71,7 @@ class Arduino(Device):
         self._send_message(message)
         received_message = self._receive_message()
         logging.debug("Received: " + str(received_message))
-        return self._parse_sensor_read(message)
+        return self._parse_sensor_read(received_message)
 
     def identify_device_sensors(self):
         """
