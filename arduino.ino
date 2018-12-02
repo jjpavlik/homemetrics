@@ -153,7 +153,7 @@ boolean send_available_sensors(byte packet_protocol_version, byte packet_id)
 boolean send_sensor_read(byte packet_protocol_version, byte packet_id, byte sensor)
 {
     // Maybe this should be a single global buffer, to prevent taking stack memory in every send_XXX function...
-    byte response_packet[15];
+    char response_packet[15];
     int sent;
     float temp;
 
