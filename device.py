@@ -101,8 +101,8 @@ class Arduino(Device):
         """
         message_length = len(message)
         data = message[5:message_length]
-        string = data.decode('ascii')
-        return string
+        value = data.decode('ascii')
+        return value
 
     def _parse_discovered_sensors(self, message):
         """
@@ -110,18 +110,18 @@ class Arduino(Device):
         sensor_name\n[type|format]
         """
         message_length = len(message)
-        name = ""
         index = 5
+        start = index
         while index < message_length:
-            name = name + str(message[index])
             index = index + 1
             if message[index] == 10: #'\n'
                 index = index + 1
-                sensor = {'name':name, 'type':message[index] & 240, 'format': message[index] & 15}
+                name = message[start:index-1]
+                sensor = {'name':name.decode('ascii'), 'type':message[index] & 240, 'format': message[index] & 15}
                 logging.debug("Sensor discovered: " + str(sensor))
                 self.add_sensor(sensor)
                 index = index + 1
-                name = ""
+                start = index
 
     def read_details(self):
         pass
