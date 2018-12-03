@@ -3,6 +3,8 @@ import logging
 #import homemetricsutils
 import json
 from time import sleep
+import datetime
+import sys
 
 DEVICES = []
 SENSORS = []
@@ -22,6 +24,9 @@ def load_device(dev):
     logging.debug("Loading device "+str(device))
     return aux
 
+def store_collected_metric(sensor, value):
+    pass
+
 def load_sensor(data):
     pass
 
@@ -29,6 +34,12 @@ def main():
     terminate = False
     FORMAT = '%(asctime)s - %(name)s - %(levelname)s - %(message)s'
     logging.basicConfig(format=FORMAT, level=logging.DEBUG)
+
+    try:
+        metrics_file = open("metrics.log","w")
+    except:
+        print("Unexpected error:", sys.exc_info()[0])
+        raise
 
     logging.info("Loading " + DEVICES_FILE)
     with open(DEVICES_FILE) as f:
@@ -52,13 +63,13 @@ def main():
             if state:
                 logging.debug("Ping to device " + dev.get_name() + " worked")
                 logging.debug("Reading sensor 0")
-                aux = dev.read_sensor(0)
-                logging.debug("Read: " + str(aux))
-                #for sensor in dev.get_sensors():
-                #    value = dev.read_sensor_data(sensor)
+                measure = dev.read_sensor(0)
+                logging.debug("Sensor read: " + str(measure))
+                ts = datetime.datetime.fromtimestamp(ts).strftime('%Y-%m-%d %H:%M:%S')
+                metrics_file.write(ts + "," + measure)
             else:
                 logging.warn("Ping to device " + dev.get_name() + " failed")
-        sleep(5)
+        sleep(2)
     #do some house keeping
     logging.debug("Doing some house keeping and shutting down")
     return 0
