@@ -62,7 +62,7 @@ def main():
         logging.basicConfig(format=FORMAT, level=logging.WARN)
 
     try:
-        metrics_file = open("metrics.log","w")
+        metrics_file = open("metrics.log","a")
     except:
         print("Unexpected error:", sys.exc_info()[0])
         raise
@@ -93,6 +93,7 @@ def main():
                 logging.debug("Sensor read: " + str(measure))
                 timestamp = str(datetime.datetime.now()).split('.')[0]
                 metrics_file.write(timestamp + "," + measure)
+                metrics_file.flush()
             else:
                 logging.warn("Ping to device " + dev.get_name() + " failed")
         sleep(2)
