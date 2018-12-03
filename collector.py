@@ -5,6 +5,7 @@ import json
 from time import sleep
 import datetime
 import sys
+import getopt
 
 DEVICES = []
 SENSORS = []
@@ -32,8 +33,25 @@ def load_sensor(data):
 
 def main():
     terminate = False
+    debug = False
+
+    for o, a in opts:
+        if o == "-v":
+            verbose = True
+        elif o in ("-h", "--help"):
+            #usage()
+            sys.exit()
+        elif o in ("-d", "--debug"):
+            debug = True
+        else:
+            assert False, "unhandled option"
+
     FORMAT = '%(asctime)s - %(name)s - %(levelname)s - %(message)s'
-    logging.basicConfig(format=FORMAT, level=logging.WARN)
+
+    if debug:
+        logging.basicConfig(format=FORMAT, level=logging.DEBUG)
+    else:
+        logging.basicConfig(format=FORMAT, level=logging.WARN)
 
     try:
         metrics_file = open("metrics.log","w")
