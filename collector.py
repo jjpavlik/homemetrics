@@ -33,7 +33,7 @@ def load_sensor(data):
 def main():
     terminate = False
     FORMAT = '%(asctime)s - %(name)s - %(levelname)s - %(message)s'
-    logging.basicConfig(format=FORMAT, level=logging.DEBUG)
+    logging.basicConfig(format=FORMAT, level=logging.WARN)
 
     try:
         metrics_file = open("metrics.log","w")
@@ -65,8 +65,8 @@ def main():
                 logging.debug("Reading sensor 0")
                 measure = dev.read_sensor(0)
                 logging.debug("Sensor read: " + str(measure))
-                ts = datetime.datetime.fromtimestamp(ts).strftime('%Y-%m-%d %H:%M:%S')
-                metrics_file.write(ts + "," + measure)
+                timestamp = str(datetime.datetime.now()).split('.')[0]
+                metrics_file.write(timestamp + "," + measure)
             else:
                 logging.warn("Ping to device " + dev.get_name() + " failed")
         sleep(2)
