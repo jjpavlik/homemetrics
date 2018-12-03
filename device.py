@@ -100,12 +100,9 @@ class Arduino(Device):
         Pull the sensor read out of the message_id
         """
         message_length = len(message)
-        data = ""
-        index = 5
-        while index < message_length:
-            data = data + str(message[index])
-            index = index + 1
-        return data
+        data = message[5:message_lenght-1]
+        string = data.decode('ascii')
+        return string
 
     def _parse_discovered_sensors(self, message):
         """
