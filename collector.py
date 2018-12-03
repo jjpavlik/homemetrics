@@ -92,7 +92,7 @@ def main():
                 measure = dev.read_sensor(0)
                 logging.debug("Sensor read: " + str(measure))
                 timestamp = str(datetime.datetime.now()).split('.')[0]
-                metrics_file.write(timestamp + "," + measure)
+                metrics_file.write(timestamp + "," + measure + "\n")
                 metrics_file.flush()
             else:
                 logging.warn("Ping to device " + dev.get_name() + " failed")
