@@ -100,7 +100,7 @@ class Arduino(Device):
         Pull the sensor read out of the message_id
         """
         message_length = len(message)
-        data = message[5:message_length-1]
+        data = message[5:message_length]
         string = data.decode('ascii')
         return string
 
