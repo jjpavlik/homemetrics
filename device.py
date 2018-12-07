@@ -29,6 +29,7 @@ class Device():
         self.location = location
         self.message_id = 0
         self.available_sensors = []
+        self.enabled = False
 
     def get_location(self):
         return self.location
@@ -41,6 +42,15 @@ class Device():
 
     def add_sensor(self, sensor):
         self.available_sensors.append(sensor)
+
+    def is_enabled(self):
+        return self.enabled
+
+    def disable(self):
+        self.enabled = False
+
+    def enable(self):
+        self.enabled = True
 
 class Arduino(Device):
     """

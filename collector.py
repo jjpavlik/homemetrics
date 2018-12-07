@@ -31,28 +31,32 @@ def store_collected_metric(sensor, value):
 def load_sensor(data):
     pass
 
+def usage():
+    pass
+
 def main():
     terminate = False
     debug = False
+    frecuency = 60 #Number of seconds between measures
 
     try:
-        opts, args = getopt.getopt(sys.argv[1:], "h", ["help", "debug"])
+        opts, args = getopt.getopt(sys.argv[1:], "hdf:", ["help", "debug"])
     except getopt.GetoptError as err:
-        # print help information and exit:
         print(err)  # will print something like "option -a not recognized"
-        #usage()
+        usage()
         sys.exit(2)
-
     for o, a in opts:
         if o == "-v":
             verbose = True
         elif o in ("-h", "--help"):
-            #usage()
+            usage()
             sys.exit()
         elif o in ("-d", "--debug"):
             debug = True
+        elif o in "-f":
+            frecuency = int(a)
         else:
-            assert False, "unhandled option"
+            assert False, "Unhandled option"
 
     FORMAT = '%(asctime)s - %(name)s - %(levelname)s - %(message)s'
 
@@ -83,24 +87,34 @@ def main():
         logging.info("Identifying devices for " + dev.get_name())
         dev.identify_device_sensors()
     sleep(5)
+
+    for dev in DEVICES:
+        state = dev.ping_device()
+        if state:
+            logging.debug("Ping to device " + dev.get_name() + " worked.")
+            dev.enable(True)
+        else:
+            logging.warn("Ping to device " + dev.get_name() + " failed, so the device has been disabled.")
+            dev.enable(False)
+
+    starttime = time.time()
+
     while not terminate:
+        #timestamp = str(datetime.datetime.now()).split('.')[0]
+        timestamp = str(datetime.datetime.now())
         for dev in DEVICES:
-            state = dev.ping_device()
-            if state:
-                logging.debug("Ping to device " + dev.get_name() + " worked")
-                logging.debug("Reading sensor 0")
+            if dev.is_enabled():
+                logging.debug("Reading sensor " + str(dev.get_name()))
                 measure = dev.read_sensor(0)
                 logging.debug("Sensor read: " + str(measure))
-                timestamp = str(datetime.datetime.now()).split('.')[0]
                 metrics_file.write(timestamp + "," + measure + "\n")
                 metrics_file.flush()
             else:
                 logging.warn("Ping to device " + dev.get_name() + " failed")
-        sleep(2)
+        sleep(60 - ((time.time() - starttime)%60))
     #do some house keeping
     logging.debug("Doing some house keeping and shutting down")
     return 0
-#    return loop()
 
 if __name__ == '__main__':
     main()
