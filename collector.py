@@ -6,6 +6,7 @@ from time import sleep
 import datetime
 import sys
 import getopt
+import time
 
 DEVICES = []
 SENSORS = []
