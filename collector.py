@@ -105,13 +105,13 @@ def main():
         timestamp = str(datetime.datetime.now())
         for dev in DEVICES:
             if dev.is_enabled():
-                logging.debug("Reading sensor " + str(dev.get_name()))
+                logging.debug("Reading device " + str(dev.get_name()))
                 measure = dev.read_sensor(0)
                 logging.debug("Sensor read: " + str(measure))
-                metrics_file.write(timestamp + "," + measure + "\n")
+                metrics_file.write(timestamp + "," + dev.get_name() + "," + measure + "\n")
                 metrics_file.flush()
             else:
-                logging.warn("Ping to device " + dev.get_name() + " failed")
+                logging.warn("Skipping " + dev.get_name() + " because is disabled.")
         sleep(60 - ((time.time() - starttime)%60))
     #do some house keeping
     logging.debug("Doing some house keeping and shutting down")
