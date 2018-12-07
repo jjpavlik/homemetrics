@@ -92,10 +92,10 @@ def main():
         state = dev.ping_device()
         if state:
             logging.debug("Ping to device " + dev.get_name() + " worked.")
-            dev.enable(True)
+            dev.enable()
         else:
             logging.warn("Ping to device " + dev.get_name() + " failed, so the device has been disabled.")
-            dev.enable(False)
+            dev.disable()
 
     starttime = time.time()
 
