@@ -26,8 +26,9 @@ def load_device(dev):
     logging.debug("Loading device "+str(device))
     return aux
 
-def store_collected_metric(sensor, value):
-    pass
+def store_collected_metric(destination, timestamp, sensor, value):
+    destination.write(timestamp + "," + sensor + "," + value + "\n")
+    destination.flush()
 
 def load_sensor(data):
     pass
@@ -108,11 +109,12 @@ def main():
                 logging.debug("Reading device " + str(dev.get_name()))
                 measure = dev.read_sensor(0)
                 logging.debug("Sensor read: " + str(measure))
-                metrics_file.write(timestamp + "," + dev.get_name() + "," + measure + "\n")
-                metrics_file.flush()
+                store_collected_metric(metrics_file, timestamp, dev.get_name(), measure)
             else:
                 logging.warn("Skipping " + dev.get_name() + " because is disabled.")
-        sleep(60 - ((time.time() - starttime)%60))
+        back_to_sleep_for = (60 - ((time.time() - starttime)%60))
+        logging.debug("Sleeping for " + str(back_to_sleep_for))
+        sleep(back_to_sleep_for)
     #do some house keeping
     logging.debug("Doing some house keeping and shutting down")
     return 0
