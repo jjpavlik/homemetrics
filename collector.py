@@ -42,8 +42,9 @@ def store_collected_metric(destination, timestamp, sensor, value):
         MEASUREMENTS.append([timestamp, sensor, value])
     else:
         if len(MEASUREMENTS) > 0:# Means there's pending metrics to be stored
+            logging.debug("A few measurements queueing: "+str(len(MEASUREMENTS)) + " trying to dump them all now")
             for measure in MEASUREMENTS:
-                destination.write(measure[0] + "," + measure[1] + "," + measure[2])
+                destination.write(measure[0] + "," + measure[1] + "," + measure[2] + "\n")
             MEASUREMENTS.clear()
         destination.write(timestamp + "," + sensor + "," + value + "\n")
         destination.flush()
