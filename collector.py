@@ -7,10 +7,12 @@ import datetime
 import sys
 import getopt
 import time
+import fcntl
 
 DEVICES = []
 SENSORS = []
 DEVICES_FILE = "devices.conf"
+MEASUREMENTS = []
 
 def load_device(dev):
     '''
@@ -27,8 +29,25 @@ def load_device(dev):
     return aux
 
 def store_collected_metric(destination, timestamp, sensor, value):
-    destination.write(timestamp + "," + sensor + "," + value + "\n")
-    destination.flush()
+    """
+    This function will try to push the measure just taken (and any pending
+    measures) to the intermediate store. If the measure can't be stored for many
+    reason, it will be appended to MEASUREMENTS list so it can be retried later on.
+    """
+    try:
+        fcntl.lockf(destination, fcntl.LOCK_EX | fcntl.LOCK_NB)
+    except OSError as e:
+        logging.warn("Lock couldn't be acquired -" + str(e) + "-")
+        logging.warn("Measurement will be temporary stored in memory.")
+        MEASUREMENTS.append([timestamp, sensor, value])
+    else:
+        if len(MEASUREMENTS) > 0:# Means there's pending metrics to be stored
+            for measure in MEASUREMENTS:
+                destination.write(measure[0], measure[1], measure[2])
+            MEASUREMENTS.clear()
+        destination.write(timestamp + "," + sensor + "," + value + "\n")
+        destination.flush()
+        fcntl.lockf(destination, fcntl.LOCK_UN)
 
 def load_sensor(data):
     pass
@@ -102,7 +121,6 @@ def main():
     starttime = time.time()
 
     while not terminate:
-        #timestamp = str(datetime.datetime.now()).split('.')[0]
         timestamp = str(datetime.datetime.now())
         for dev in DEVICES:
             if dev.is_enabled():
