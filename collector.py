@@ -43,7 +43,7 @@ def store_collected_metric(destination, timestamp, sensor, value):
     else:
         if len(MEASUREMENTS) > 0:# Means there's pending metrics to be stored
             for measure in MEASUREMENTS:
-                destination.write(measure[0], measure[1], measure[2])
+                destination.write(measure[0] + "," + measure[1] + "," + measure[2])
             MEASUREMENTS.clear()
         destination.write(timestamp + "," + sensor + "," + value + "\n")
         destination.flush()
