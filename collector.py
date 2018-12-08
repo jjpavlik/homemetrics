@@ -36,7 +36,7 @@ def store_collected_metric(destination, timestamp, sensor, value):
     """
     try:
         fcntl.lockf(destination, fcntl.LOCK_EX | fcntl.LOCK_NB)
-    except OSError as e:
+    except BlockingIOError as e:
         logging.warn("Lock couldn't be acquired -" + str(e) + "-")
         logging.warn("Measurement will be temporary stored in memory.")
         MEASUREMENTS.append([timestamp, sensor, value])
