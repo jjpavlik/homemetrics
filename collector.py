@@ -82,9 +82,9 @@ def main():
     FORMAT = '%(asctime)s - %(name)s - %(levelname)s - %(message)s'
 
     if debug:
-        logging.basicConfig(format=FORMAT, level=logging.DEBUG)
+        logging.basicConfig(filename='collector.log', format=FORMAT, level=logging.DEBUG)
     else:
-        logging.basicConfig(format=FORMAT, level=logging.WARN)
+        logging.basicConfig(filename='collector.log', format=FORMAT, level=logging.WARN)
 
     try:
         metrics_file = open("metrics.log","a")
