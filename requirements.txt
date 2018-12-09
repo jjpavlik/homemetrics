@@ -1,1 +1,7 @@
+botocore==1.12.62
+docutils==0.14
+jmespath==0.9.3
 pyserial==3.4
+python-dateutil==2.7.5
+six==1.11.0
+urllib3==1.24.1
