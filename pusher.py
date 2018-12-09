@@ -1,6 +1,8 @@
 import time
 import loggin
 
+METRICS_FILE = "metrics.log"
+
 def usage():
     pass
 
@@ -37,6 +39,12 @@ def main():
 
     while not terminate:
         pass
+        try:
+             meitrics_file = open(METRICS_FILE, "w")
+        except OSError as e:
+            logging.debug("Wasn't able to open the metrics file: " + str(e))
+        else:
+
         back_to_sleep_for = (frecuency - ((time.time() - starttime)%frecuency))
         logging.debug("Sleeping for " + str(back_to_sleep_for))
         sleep(back_to_sleep_for)
