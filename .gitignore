@@ -2,3 +2,6 @@
 *.devices
 *.log
 __*
+bin*
+include*
+lib*
