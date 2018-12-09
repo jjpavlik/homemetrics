@@ -31,12 +31,15 @@ def main():
     FORMAT = '%(asctime)s - %(name)s - %(levelname)s - %(message)s'
 
     if debug:
-        logging.basicConfig(format=FORMAT, level=logging.DEBUG)
+        logging.basicConfig(filename="pusher.log", format=FORMAT, level=logging.DEBUG)
     else:
-        logging.basicConfig(format=FORMAT, level=logging.WARN)
+        logging.basicConfig(filename="pusher.log", format=FORMAT, level=logging.WARN)
 
     while not terminate:
-
+        pass
+        back_to_sleep_for = (frecuency - ((time.time() - starttime)%frecuency))
+        logging.debug("Sleeping for " + str(back_to_sleep_for))
+        sleep(back_to_sleep_for)
 
 if "__name__" == "__main__":
     main()

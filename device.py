@@ -83,6 +83,9 @@ class Arduino(Device):
         logging.debug("Received: " + str(received_message))
         return self._parse_sensor_read(received_message)
 
+    def get_sensor_name(self, id):
+        return self.available_sensors[0]['name']
+
     def identify_device_sensors(self):
         """
         Ideally, this would send a message to the Arduino asking for the available sensors.

@@ -27,7 +27,7 @@ def load_device(dev):
     logging.debug("Loading device "+str(device))
     return aux
 
-def store_collected_metric(destination, timestamp, sensor, value):
+def store_collected_metric(destination, timestamp, device, sensor, value):
     """
     This function will try to push the measure just taken (and any pending
     measures) to the intermediate store. If the measure can't be stored for many
@@ -38,14 +38,14 @@ def store_collected_metric(destination, timestamp, sensor, value):
     except BlockingIOError as e:
         logging.warn("Lock couldn't be acquired -" + str(e) + "-")
         logging.warn("Measurement will be temporary stored in memory.")
-        MEASUREMENTS.append([timestamp, sensor, value])
+        MEASUREMENTS.append([timestamp, device, sensor, value])
     else:
         if len(MEASUREMENTS) > 0:# Means there's pending metrics to be stored
             logging.debug("A few measurements queueing: "+str(len(MEASUREMENTS)) + " trying to dump them all now")
             for measure in MEASUREMENTS:
-                destination.write(measure[0] + "," + measure[1] + "," + measure[2] + "\n")
+                destination.write(measure[0] + "," + measure[1] + "," + measure[2] + "," + measure[2] + "\n")
             MEASUREMENTS.clear()
-        destination.write(timestamp + "," + sensor + "," + value + "\n")
+        destination.write(timestamp + "," + device + "," + sensor + "," + value + "\n")
         destination.flush()
         fcntl.lockf(destination, fcntl.LOCK_UN)
 
@@ -125,9 +125,10 @@ def main():
         for dev in DEVICES:
             if dev.is_enabled():
                 logging.debug("Reading device " + str(dev.get_name()))
-                measure = dev.read_sensor(0)
+                sensor = 0
+                measure = dev.read_sensor(sensor)
                 logging.debug("Sensor read: " + str(measure))
-                store_collected_metric(metrics_file, timestamp, dev.get_name(), measure)
+                store_collected_metric(metrics_file, timestamp, dev.get_name(), dev.get_sensor_name(sensor), measure)
             else:
                 logging.warn("Skipping " + dev.get_name() + " because is disabled.")
         back_to_sleep_for = (frecuency - ((time.time() - starttime)%frecuency))
