@@ -1,6 +1,5 @@
 import device
 import logging
-#import homemetricsutils
 import json
 from time import sleep
 import datetime
@@ -131,7 +130,7 @@ def main():
                 store_collected_metric(metrics_file, timestamp, dev.get_name(), measure)
             else:
                 logging.warn("Skipping " + dev.get_name() + " because is disabled.")
-        back_to_sleep_for = (60 - ((time.time() - starttime)%60))
+        back_to_sleep_for = (frecuency - ((time.time() - starttime)%frecuency))
         logging.debug("Sleeping for " + str(back_to_sleep_for))
         sleep(back_to_sleep_for)
     #do some house keeping
