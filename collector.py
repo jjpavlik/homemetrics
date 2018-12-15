@@ -1,7 +1,6 @@
 import device
 import logging
 import json
-from time import sleep
 import datetime
 import sys
 import getopt
@@ -133,7 +132,7 @@ def main():
                 logging.warn("Skipping " + dev.get_name() + " because is disabled.")
         back_to_sleep_for = (frecuency - ((time.time() - starttime)%frecuency))
         logging.debug("Sleeping for " + str(back_to_sleep_for))
-        sleep(back_to_sleep_for)
+        time.sleep(back_to_sleep_for)
     #do some house keeping
     logging.debug("Doing some house keeping and shutting down")
     return 0
