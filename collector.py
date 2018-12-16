@@ -11,6 +11,7 @@ DEVICES = []
 SENSORS = []
 DEVICES_FILE = "devices.conf"
 MEASUREMENTS = []
+METRICS_FILE = "metrics.log"
 
 def load_device(dev):
     '''
@@ -40,9 +41,9 @@ def store_collected_metric(destination, timestamp, device, sensor, value):
         MEASUREMENTS.append([timestamp, device, sensor, value])
     else:
         if len(MEASUREMENTS) > 0:# Means there's pending metrics to be stored
-            logging.debug("A few measurements queueing: "+str(len(MEASUREMENTS)) + " trying to dump them all now")
+            logging.debug("A few measurements queueing: " + str(len(MEASUREMENTS)) + " trying to dump them all now")
             for measure in MEASUREMENTS:
-                destination.write(measure[0] + "," + measure[1] + "," + measure[2] + "," + measure[2] + "\n")
+                destination.write(measure[0] + "," + measure[1] + "," + measure[2] + "," + measure[3] + "\n")
             MEASUREMENTS.clear()
         destination.write(timestamp + "," + device + "," + sensor + "," + value + "\n")
         destination.flush()
@@ -86,7 +87,7 @@ def main():
         logging.basicConfig(filename='collector.log', format=FORMAT, level=logging.WARN)
 
     try:
-        metrics_file = open("metrics.log","a")
+        metrics_file = open(METRICS_FILE,"a")
     except:
         print("Unexpected error:", sys.exc_info()[0])
         raise

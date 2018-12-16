@@ -6,6 +6,8 @@ import time
 import datetime
 import boto3
 
+METRICS_FILE = "metrics.log"
+
 def usage():
     pass
 
@@ -72,6 +74,7 @@ def main():
     starttime = time.time()
 
     while not terminate:
+<<<<<<< HEAD
         timestamp = str(datetime.datetime.now())
         for i in metrics_file:
             try:
@@ -81,6 +84,15 @@ def main():
             else:
                 push_metric(parts)
             time.sleep(1)
+=======
+        pass
+        try:
+             meitrics_file = open(METRICS_FILE, "w")
+        except OSError as e:
+            logging.debug("Wasn't able to open the metrics file: " + str(e))
+        else:
+
+>>>>>>> fd7371ce263478b3e29e94470a4cb2730eefc407
         back_to_sleep_for = (frecuency - ((time.time() - starttime)%frecuency))
         logging.debug("Sleeping for " + str(back_to_sleep_for))
         time.sleep(back_to_sleep_for)
