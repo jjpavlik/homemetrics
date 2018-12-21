@@ -6,6 +6,7 @@ import time
 import datetime
 import boto3
 import json
+import re
 
 METRICS_FILE = "metrics.log"
 LAST_DATAPOINT_FILE = "pusher_last_datapoint.log"
@@ -54,9 +55,15 @@ def save_last_datapoint(last_datapoint):
 
 def read_last_datapoint():
     """
-    Picks up the offset to use in metrics.log
+    Picks the lastest pushed datapoint
     """
-    pass
+    try:
+        f = open(LAST_DATAPOINT_FILE,"r")
+    except e:
+        raise e
+    else:
+        last_datapoint = json.load(f)
+    return last_datapoint
 
 def main():
     terminate = False
@@ -101,23 +108,27 @@ def main():
     
     logging.debug("Metrics file was opened")
 
- #   try:
- #       open(LAST_DATAPOINT_FILE,"r")
- #   except:
-
+    last_datapoint = read_last_datapoint()# TODO: I should probably do some validation here as well, to make sure the datapoint hasn't been corrupted.
+    logging.debug("Starting from " + last_datapoint['last-datapoint'])
+    
     starttime = time.time()
-
+    found = False
     while not terminate:
         timestamp = str(datetime.datetime.now())
         for i in metrics_file:
-            try:
-                parts = parse_metric_line(i)
-            except ValueError:
-                logging.error("Wrong number of fields on line: "+str(i))
+            if found: 
+                try:
+                    parts = parse_metric_line(i)
+                except ValueError:
+                    logging.error("Wrong number of fields on line: "+str(i))
+                else:
+                    push_metric(parts)
+                    save_last_datapoint(i.rstrip())
+                time.sleep(1)
             else:
-                push_metric(parts)
-                save_last_datapoint(i.rstrip())
-            time.sleep(1)
+                if re.search(last_datapoint['last-datapoint'],i):
+                    logging.debug("Found last datapoint, so now will start from the next one.")
+                    found = True
 
         back_to_sleep_for = (frecuency - ((time.time() - starttime)%frecuency))
         logging.debug("Sleeping for " + str(back_to_sleep_for))
