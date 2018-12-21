@@ -5,20 +5,29 @@ import sys
 import time
 import datetime
 import boto3
+import json
 
 METRICS_FILE = "metrics.log"
+LAST_DATAPOINT_FILE = "pusher_last_datapoint.log"
+LAST_DATAPOINT = ""
 
 def usage():
     pass
 
-def parse_line(line):
+def parse_metric_line(line):
+    """
+    Just splits the line into the expected 4 fields, otherwise raises ValueError.
+    Some more field validation should be done here as well according to the fields.
+    """
     parts = line.split(',')
     if len(parts) != 4:
         raise ValueError("Wrong number of parts in that line.")
     return parts
 
 def push_metric(parts):
-   
+    """
+    Pushes a given metric to CW, that's pretty much it.
+    """
     logging.debug("Pushing metric: " + str(parts))
     client = boto3.client("cloudwatch")
 
@@ -33,13 +42,31 @@ def push_metric(parts):
     response = client.put_metric_data(Namespace = namespace, MetricData = metric_data)
     logging.debug(response)
 
+def save_last_datapoint(last_datapoint):
+    """
+    Stores in LAST_DATAPOINT_FILE the offset witin metrics.log for the next datapoint in order to know where to start next time.
+    When pusher.py starts this value should be picked up and used to seek the next metric to be pushed.
+    """
+    logging.debug("Storing " + last_datapoint + " in " + LAST_DATAPOINT_FILE)
+    with open(LAST_DATAPOINT_FILE,"w") as f:
+        f.truncate()
+        json.dump({"last-datapoint":last_datapoint, "timestamp":time.time()},f)
+
+def read_last_datapoint():
+    """
+    Picks up the offset to use in metrics.log
+    """
+    pass
+
 def main():
     terminate = False
-    debug = False
+    debug = True
+    resume = True
     frecuency = 60 #Number of seconds between measures
+    global METRICS_FILE
 
     try:
-        opts, args = getopt.getopt(sys.argv[1:], "hdf:", ["help", "debug"])
+        opts, args = getopt.getopt(sys.argv[1:], "hdf:m:", ["help", "debug"])
     except getopt.GetoptError as err:
         print(err)  # will print something like "option -a not recognized"
         usage()
@@ -54,8 +81,12 @@ def main():
             debug = True
         elif o in "-f":
             frecuency = int(a)
+        elif o in "-m":
+             METRICS_FILE = str(a)
         else:
-            assert False, "Unhandled option"
+            print("Unhandled option")
+            usage()
+            sys.exit(2)
 
     FORMAT = '%(asctime)s - %(name)s - %(levelname)s - %(message)s'
     
@@ -63,39 +94,38 @@ def main():
         logging.basicConfig(filename="pusher.log", format=FORMAT, level=logging.DEBUG)
     else:
         logging.basicConfig(filename="pusher.log", format=FORMAT, level=logging.WARN)
-
     try:
-        metrics_file = open("metrics1.log","r")
+        metrics_file = open(METRICS_FILE,"r")
     except e:
         raise e
     
     logging.debug("Metrics file was opened")
 
+ #   try:
+ #       open(LAST_DATAPOINT_FILE,"r")
+ #   except:
+
     starttime = time.time()
 
     while not terminate:
-<<<<<<< HEAD
         timestamp = str(datetime.datetime.now())
         for i in metrics_file:
             try:
-                parts = parse_line(i)
+                parts = parse_metric_line(i)
             except ValueError:
                 logging.error("Wrong number of fields on line: "+str(i))
             else:
                 push_metric(parts)
+                save_last_datapoint(i.rstrip())
             time.sleep(1)
-=======
-        pass
-        try:
-             meitrics_file = open(METRICS_FILE, "w")
-        except OSError as e:
-            logging.debug("Wasn't able to open the metrics file: " + str(e))
-        else:
 
->>>>>>> fd7371ce263478b3e29e94470a4cb2730eefc407
         back_to_sleep_for = (frecuency - ((time.time() - starttime)%frecuency))
         logging.debug("Sleeping for " + str(back_to_sleep_for))
         time.sleep(back_to_sleep_for)
+
+        if terminate:
+            pass
+            #Do some housekeeping and finish
 
 if __name__ == "__main__":
     main()
