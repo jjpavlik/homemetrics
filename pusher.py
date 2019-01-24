@@ -7,10 +7,12 @@ import datetime
 import boto3
 import json
 import re
+import configparser 
 
 METRICS_FILE = "metrics.log"
 LAST_DATAPOINT_FILE = "pusher_last_datapoint.log"
 LAST_DATAPOINT = ""
+CONFIGURATION_FILE = "general.conf"
 
 def usage():
     pass
@@ -25,23 +27,27 @@ def parse_metric_line(line):
         raise ValueError("Wrong number of parts in that line.")
     return parts
 
-def push_metric(parts):
+def push_metric(message, configuration):
     """
     Pushes a given metric to CW, that's pretty much it.
     """
+    parts = json.loads(message)
     logging.debug("Pushing metric: " + str(parts))
     client = boto3.client("cloudwatch")
 
-    namespace = "homemetrics"
-    metric_name = parts[1] + "-" + parts[2]
-    timestamp = parts[0]
-    dimensions = [{"Name":"Device","Value":parts[1]},{"Name":"Sensor","Value":parts[2]}]
-    value = float(parts[3])
+    namespace = configuration['PUSHER']['metric-namespace']
+
+    metric_name = parts['device'] + "-" + parts['sensor']
+    timestamp = parts['timestamp']
+    dimensions = [{"Name":"Device","Value":parts['device']},{"Name":"Sensor","Value":parts['sensor']}]
+    value = float(parts['value'])
     counts = 1
     metric_data = [{"MetricName":metric_name, "Timestamp":timestamp, "Value":value, "Dimensions":dimensions}]
 
     response = client.put_metric_data(Namespace = namespace, MetricData = metric_data)
     logging.debug(response)
+
+    return True
 
 def save_last_datapoint(last_datapoint):
     """
@@ -65,15 +71,37 @@ def read_last_datapoint():
         last_datapoint = json.load(f)
     return last_datapoint
 
+def get_available_messages(parameters):
+    """
+    Pull the messages from the queue if any
+    """
+    client = boto3.client("sqs")
+    url = parameters['QUEUE']['url']
+    messages = client.receive_message(QueueUrl = url, MaxNumberOfMessages = 10, WaitTimeSeconds = 2)
+    return messages
+
+def acknowledge_message(message, parameters):
+    """
+    ACKs the message so the queue service can get rid of it
+    """
+    client = boto3.client("sqs")
+    url = parameters['QUEUE']['url']
+
+    client.delete_message(QueueUrl = url, ReceiptHandle = message['ReceiptHandle'])
+
 def main():
     terminate = False
     debug = True
     resume = True
-    frecuency = 60 #Number of seconds between measures
+    use_queue = False
     global METRICS_FILE
 
+    configuration = configparser.ConfigParser()
+    configuration.read(CONFIGURATION_FILE)
+    frequency = int(configuration['PUSHER']['frequency'])
+
     try:
-        opts, args = getopt.getopt(sys.argv[1:], "hdf:m:", ["help", "debug"])
+        opts, args = getopt.getopt(sys.argv[1:], "hdf:m:q", ["help", "debug"])
     except getopt.GetoptError as err:
         print(err)  # will print something like "option -a not recognized"
         usage()
@@ -87,7 +115,9 @@ def main():
         elif o in ("-d", "--debug"):
             debug = True
         elif o in "-f":
-            frecuency = int(a)
+            frequency = int(a)
+        elif o in "-q":
+            use_queue = True
         elif o in "-m":
              METRICS_FILE = str(a)
         else:
@@ -101,36 +131,17 @@ def main():
         logging.basicConfig(filename="pusher.log", format=FORMAT, level=logging.DEBUG)
     else:
         logging.basicConfig(filename="pusher.log", format=FORMAT, level=logging.WARN)
-    try:
-        metrics_file = open(METRICS_FILE,"r")
-    except e:
-        raise e
-    
-    logging.debug("Metrics file was opened")
 
-    last_datapoint = read_last_datapoint()# TODO: I should probably do some validation here as well, to make sure the datapoint hasn't been corrupted.
-    logging.debug("Starting from " + last_datapoint['last-datapoint'])
-    
     starttime = time.time()
-    found = False
     while not terminate:
         timestamp = str(datetime.datetime.now())
-        for i in metrics_file:
-            if found: 
-                try:
-                    parts = parse_metric_line(i)
-                except ValueError:
-                    logging.error("Wrong number of fields on line: "+str(i))
-                else:
-                    push_metric(parts)
-                    save_last_datapoint(i.rstrip())
-                time.sleep(1)
-            else:
-                if re.search(last_datapoint['last-datapoint'],i):
-                    logging.debug("Found last datapoint, so now will start from the next one.")
-                    found = True
-
-        back_to_sleep_for = (frecuency - ((time.time() - starttime)%frecuency))
+        messages = get_available_messages(configuration)
+        if 'Messages' in messages.keys():
+            for i in messages['Messages']:
+                res = push_metric(i['Body'], configuration)
+                if res:
+                    acknowledge_message(i, configuration)
+        back_to_sleep_for = (frequency - ((time.time() - starttime)%frequency))
         logging.debug("Sleeping for " + str(back_to_sleep_for))
         time.sleep(back_to_sleep_for)
 

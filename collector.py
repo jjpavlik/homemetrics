@@ -6,12 +6,15 @@ import sys
 import getopt
 import time
 import fcntl
+import configparser
+import boto3
 
 DEVICES = []
 SENSORS = []
 DEVICES_FILE = "devices.conf"
 MEASUREMENTS = []
 METRICS_FILE = "metrics.log"
+CONFIGURATION_FILE = "general.conf"
 
 def load_device(dev):
     '''
@@ -49,6 +52,31 @@ def store_collected_metric(destination, timestamp, device, sensor, value):
         destination.flush()
         fcntl.lockf(destination, fcntl.LOCK_UN)
 
+def store_collected_metric_queue(parameters, timestamp, device, sensor, value):
+    """
+    Pushes the metric to a queue, so then they can be pulled from there.
+    """
+    client = boto3.client("sqs")
+    url = parameters['QUEUE']['url']
+    
+    if len(MEASUREMENTS) > 0:
+        logging.debug("A few measurements queuing locally :O " + str(len(MEASUREMENTS)) + " trying to push them now")
+        for measure in MEASUREMENTS:
+            res = __push_message(client, url, measure)
+            if not res:
+                MEASUREMENTS.append(measure)
+    message = json.dumps({"timestamp":timestamp, "device":device, "sensor":sensor, "value":value})
+    res = __push_message(client, url, message)
+    if not res:
+        MEASUREMENTS.append(measure)
+
+def __push_message(client, url, message):
+    """
+    Function that actually pushes the message to the queue.
+    """
+    client.send_message(QueueUrl = url, MessageBody = message)
+    return True
+
 def load_sensor(data):
     pass
 
@@ -58,10 +86,14 @@ def usage():
 def main():
     terminate = False
     debug = False
-    frecuency = 60 #Number of seconds between measures
+    use_queue = False
+
+    configuration = configparser.ConfigParser()
+    configuration.read(CONFIGURATION_FILE)
+    frequency = int(configuration['COLLECTOR']['frequency'])
 
     try:
-        opts, args = getopt.getopt(sys.argv[1:], "hdf:", ["help", "debug"])
+        opts, args = getopt.getopt(sys.argv[1:], "hdf:q", ["help", "debug"])
     except getopt.GetoptError as err:
         print(err)  # will print something like "option -a not recognized"
         usage()
@@ -74,8 +106,12 @@ def main():
             sys.exit()
         elif o in ("-d", "--debug"):
             debug = True
+        elif o in ("-q"):
+            use_queue = True
+            if "url" not in configuration['QUEUE']:
+                assert False, "Missing url in " + CONFIGURATION_FILE
         elif o in "-f":
-            frecuency = int(a)
+            frequency = int(a)
         else:
             assert False, "Unhandled option"
 
@@ -86,11 +122,13 @@ def main():
     else:
         logging.basicConfig(filename='collector.log', format=FORMAT, level=logging.WARN)
 
-    try:
-        metrics_file = open(METRICS_FILE,"a")
-    except:
-        print("Unexpected error:", sys.exc_info()[0])
-        raise
+
+    if not use_queue:
+        try:
+            metrics_file = open(METRICS_FILE,"a")
+        except:
+            print("Unexpected error:", sys.exc_info()[0])
+            raise
 
     logging.info("Loading " + DEVICES_FILE)
     with open(DEVICES_FILE) as f:
@@ -102,12 +140,12 @@ def main():
         elif device['device-type'] == "sensor":
             SENSORS.append(load_sensor(device))
     logging.info("All devices loaded")
-    sleep(5)
+    time.sleep(5)
     ####
     for dev in DEVICES:
         logging.info("Identifying devices for " + dev.get_name())
         dev.identify_device_sensors()
-    sleep(5)
+    time.sleep(5)
 
     for dev in DEVICES:
         state = dev.ping_device()
@@ -128,10 +166,13 @@ def main():
                 sensor = 0
                 measure = dev.read_sensor(sensor)
                 logging.debug("Sensor read: " + str(measure))
-                store_collected_metric(metrics_file, timestamp, dev.get_name(), dev.get_sensor_name(sensor), measure)
+                if use_queue:
+                    store_collected_metric_queue(configuration, timestamp, dev.get_name(), dev.get_sensor_name(sensor), measure)
+                else:
+                    store_collected_metric(metrics_file, timestamp, dev.get_name(), dev.get_sensor_name(sensor), measure)
             else:
                 logging.warn("Skipping " + dev.get_name() + " because is disabled.")
-        back_to_sleep_for = (frecuency - ((time.time() - starttime)%frecuency))
+        back_to_sleep_for = (frequency - ((time.time() - starttime)%frequency))
         logging.debug("Sleeping for " + str(back_to_sleep_for))
         time.sleep(back_to_sleep_for)
     #do some house keeping
