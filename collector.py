@@ -8,6 +8,7 @@ import time
 import fcntl
 import configparser
 import boto3
+import signal
 
 DEVICES = []
 SENSORS = []
@@ -15,6 +16,7 @@ DEVICES_FILE = "devices.conf"
 MEASUREMENTS = []
 METRICS_FILE = "metrics.log"
 CONFIGURATION_FILE = "general.conf"
+TERMINATE = False
 
 def load_device(dev):
     '''
@@ -55,6 +57,13 @@ def __push_message(client, url, message):
     client.send_message(QueueUrl = url, MessageBody = message)
     return True
 
+def term_handler(signum, frame):
+    """
+    Termination handler, sets TERMINATE to True and let things go back to where they were.
+    """
+    global TERMINATE
+    TERMINATE = True
+
 def load_sensor(data):
     pass
 
@@ -62,8 +71,10 @@ def usage():
     pass
 
 def main():
-    terminate = False
     debug = False
+    global TERMINATE
+
+    signal.signal(signal.SIGTERM, term_handler)
 
     configuration = configparser.ConfigParser()
     configuration.read(CONFIGURATION_FILE)
@@ -121,7 +132,7 @@ def main():
 
     starttime = time.time()
 
-    while not terminate:
+    while not TERMINATE:
         timestamp = str(datetime.datetime.now())
         for dev in DEVICES:
             if dev.is_enabled():
@@ -135,8 +146,9 @@ def main():
         back_to_sleep_for = (frequency - ((time.time() - starttime)%frequency))
         logging.debug("Sleeping for " + str(back_to_sleep_for))
         time.sleep(back_to_sleep_for)
+
     #do some house keeping
-    logging.debug("Doing some house keeping and shutting down")
+    logging.debug("Terminating... doing some house keeping and shutting down")
     return 0
 
 if __name__ == '__main__':

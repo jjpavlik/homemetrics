@@ -8,8 +8,10 @@ import boto3
 import json
 import re
 import configparser 
+import signal
 
 CONFIGURATION_FILE = "general.conf"
+TERMINATE = False
 
 def usage():
     pass
@@ -55,10 +57,19 @@ def acknowledge_message(message, parameters):
 
     client.delete_message(QueueUrl = url, ReceiptHandle = message['ReceiptHandle'])
 
+def term_handler(signum, frame):
+    """
+    Just sets TERMINATE to True and goes back to where things were
+    """
+    global TERMINATE
+    TERMINATE = True
+
 def main():
-    terminate = False
-    debug = True
+    debug = False
     global METRICS_FILE
+    global TERMINATE
+
+    signal.signal(signal.SIGTERM, term_handler)
 
     configuration = configparser.ConfigParser()
     configuration.read(CONFIGURATION_FILE)
@@ -91,7 +102,7 @@ def main():
         logging.basicConfig(filename="pusher.log", format=FORMAT, level=logging.WARN)
 
     starttime = time.time()
-    while not terminate:
+    while not TERMINATE:
         timestamp = str(datetime.datetime.now())
         messages = get_available_messages(configuration)
         if 'Messages' in messages.keys():
@@ -103,9 +114,7 @@ def main():
         logging.debug("Sleeping for " + str(back_to_sleep_for))
         time.sleep(back_to_sleep_for)
 
-        if terminate:
-            pass
-            #Do some housekeeping and finish
+    logging.debug("Terminating... doing some housekeeping now.")
 
 if __name__ == "__main__":
     main()
