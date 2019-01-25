@@ -9,23 +9,10 @@ import json
 import re
 import configparser 
 
-METRICS_FILE = "metrics.log"
-LAST_DATAPOINT_FILE = "pusher_last_datapoint.log"
-LAST_DATAPOINT = ""
 CONFIGURATION_FILE = "general.conf"
 
 def usage():
     pass
-
-def parse_metric_line(line):
-    """
-    Just splits the line into the expected 4 fields, otherwise raises ValueError.
-    Some more field validation should be done here as well according to the fields.
-    """
-    parts = line.split(',')
-    if len(parts) != 4:
-        raise ValueError("Wrong number of parts in that line.")
-    return parts
 
 def push_metric(message, configuration):
     """
@@ -49,27 +36,6 @@ def push_metric(message, configuration):
 
     return True
 
-def save_last_datapoint(last_datapoint):
-    """
-    Stores in LAST_DATAPOINT_FILE the offset witin metrics.log for the next datapoint in order to know where to start next time.
-    When pusher.py starts this value should be picked up and used to seek the next metric to be pushed.
-    """
-    logging.debug("Storing " + last_datapoint + " in " + LAST_DATAPOINT_FILE)
-    with open(LAST_DATAPOINT_FILE,"w") as f:
-        f.truncate()
-        json.dump({"last-datapoint":last_datapoint, "timestamp":time.time()},f)
-
-def read_last_datapoint():
-    """
-    Picks the lastest pushed datapoint
-    """
-    try:
-        f = open(LAST_DATAPOINT_FILE,"r")
-    except e:
-        raise e
-    else:
-        last_datapoint = json.load(f)
-    return last_datapoint
 
 def get_available_messages(parameters):
     """
@@ -92,8 +58,6 @@ def acknowledge_message(message, parameters):
 def main():
     terminate = False
     debug = True
-    resume = True
-    use_queue = False
     global METRICS_FILE
 
     configuration = configparser.ConfigParser()
@@ -101,25 +65,19 @@ def main():
     frequency = int(configuration['PUSHER']['frequency'])
 
     try:
-        opts, args = getopt.getopt(sys.argv[1:], "hdf:m:q", ["help", "debug"])
+        opts, args = getopt.getopt(sys.argv[1:], "hdf:", ["help", "debug"])
     except getopt.GetoptError as err:
         print(err)  # will print something like "option -a not recognized"
         usage()
         sys.exit(2)
     for o, a in opts:
-        if o == "-v":
-            verbose = True
-        elif o in ("-h", "--help"):
+        if o in ("-h", "--help"):
             usage()
             sys.exit()
         elif o in ("-d", "--debug"):
             debug = True
         elif o in "-f":
             frequency = int(a)
-        elif o in "-q":
-            use_queue = True
-        elif o in "-m":
-             METRICS_FILE = str(a)
         else:
             print("Unhandled option")
             usage()

@@ -30,29 +30,7 @@ def load_device(dev):
     logging.debug("Loading device "+str(device))
     return aux
 
-def store_collected_metric(destination, timestamp, device, sensor, value):
-    """
-    This function will try to push the measure just taken (and any pending
-    measures) to the intermediate store. If the measure can't be stored for many
-    reason, it will be appended to MEASUREMENTS list so it can be retried later on.
-    """
-    try:
-        fcntl.lockf(destination, fcntl.LOCK_EX | fcntl.LOCK_NB)
-    except BlockingIOError as e:
-        logging.warn("Lock couldn't be acquired -" + str(e) + "-")
-        logging.warn("Measurement will be temporary stored in memory.")
-        MEASUREMENTS.append([timestamp, device, sensor, value])
-    else:
-        if len(MEASUREMENTS) > 0:# Means there's pending metrics to be stored
-            logging.debug("A few measurements queueing: " + str(len(MEASUREMENTS)) + " trying to dump them all now")
-            for measure in MEASUREMENTS:
-                destination.write(measure[0] + "," + measure[1] + "," + measure[2] + "," + measure[3] + "\n")
-            MEASUREMENTS.clear()
-        destination.write(timestamp + "," + device + "," + sensor + "," + value + "\n")
-        destination.flush()
-        fcntl.lockf(destination, fcntl.LOCK_UN)
-
-def store_collected_metric_queue(parameters, timestamp, device, sensor, value):
+def store_collected_metric(parameters, timestamp, device, sensor, value):
     """
     Pushes the metric to a queue, so then they can be pulled from there.
     """
@@ -86,30 +64,23 @@ def usage():
 def main():
     terminate = False
     debug = False
-    use_queue = False
 
     configuration = configparser.ConfigParser()
     configuration.read(CONFIGURATION_FILE)
     frequency = int(configuration['COLLECTOR']['frequency'])
 
     try:
-        opts, args = getopt.getopt(sys.argv[1:], "hdf:q", ["help", "debug"])
+        opts, args = getopt.getopt(sys.argv[1:], "hdf:", ["help", "debug"])
     except getopt.GetoptError as err:
         print(err)  # will print something like "option -a not recognized"
         usage()
         sys.exit(2)
     for o, a in opts:
-        if o == "-v":
-            verbose = True
-        elif o in ("-h", "--help"):
+        if o in ("-h", "--help"):
             usage()
             sys.exit()
         elif o in ("-d", "--debug"):
             debug = True
-        elif o in ("-q"):
-            use_queue = True
-            if "url" not in configuration['QUEUE']:
-                assert False, "Missing url in " + CONFIGURATION_FILE
         elif o in "-f":
             frequency = int(a)
         else:
@@ -121,14 +92,6 @@ def main():
         logging.basicConfig(filename='collector.log', format=FORMAT, level=logging.DEBUG)
     else:
         logging.basicConfig(filename='collector.log', format=FORMAT, level=logging.WARN)
-
-
-    if not use_queue:
-        try:
-            metrics_file = open(METRICS_FILE,"a")
-        except:
-            print("Unexpected error:", sys.exc_info()[0])
-            raise
 
     logging.info("Loading " + DEVICES_FILE)
     with open(DEVICES_FILE) as f:
@@ -166,10 +129,7 @@ def main():
                 sensor = 0
                 measure = dev.read_sensor(sensor)
                 logging.debug("Sensor read: " + str(measure))
-                if use_queue:
-                    store_collected_metric_queue(configuration, timestamp, dev.get_name(), dev.get_sensor_name(sensor), measure)
-                else:
-                    store_collected_metric(metrics_file, timestamp, dev.get_name(), dev.get_sensor_name(sensor), measure)
+                store_collected_metric(configuration, timestamp, dev.get_name(), dev.get_sensor_name(sensor), measure)
             else:
                 logging.warn("Skipping " + dev.get_name() + " because is disabled.")
         back_to_sleep_for = (frequency - ((time.time() - starttime)%frequency))
