@@ -60,14 +60,6 @@ void setup(void)
   buffer_index = 0;
 }
 
-void float2array(float *number, byte *b_array)
-{
-  b_array[0] = (byte)*number;
-  b_array[1] = (byte)*(number+1);
-  b_array[2] = (byte)*(number+2);
-  b_array[3] = (byte)*(number+3);
-}
-
 // Pull all the available data from the UART buffer
 void pull_data()
 {
@@ -248,25 +240,3 @@ void loop(void)
   }
 }
 
-void loop2(void)
-{
-  int aux;
-  float temp;
-  byte temp_array[4];
-  // call sensors.requestTemperatures() to issue a global temperature
-  // request to all devices on the bus
-  //Serial.print(" Requesting temperatures...");
-  sensors.requestTemperatures(); // Send the command to get temperatures
-  //Serial.println("DONE");
-
-  //Serial.print("Temperature for Device 1 is: ");
-  temp = sensors.getTempCByIndex(0);
-  //Serial.print(temp);
-  //Serial.print("Float turned into 4 bytes array: ");
-  float2array(&temp, temp_array);
-  Serial.write(temp_array, 4);
-//  Serial.print(aux); // Why "byIndex"?
-    // You can have more than one IC on the same bus.
-    // 0 refers to the first IC on the wire
-  delay(1000);
-}
