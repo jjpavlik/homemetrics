@@ -181,6 +181,7 @@ boolean send_sensor_read(byte packet_protocol_version, byte packet_id, byte sens
 }
 
 // This function updates the text on the LCD according to what the Pi sent.
+// First needs to pull out the two strings one for each row :(
 void update_screen1()
 {
   return 0;

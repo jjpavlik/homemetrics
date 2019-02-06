@@ -69,3 +69,18 @@ Where:
 ```
 0001 1111 - PACKET_ID - 1110 1111 - 0000 0000 - 0001 0011 - temp1\n0temp2\n1
 ```
+
+### WRITE/UPDATE a given sensor:
+
+This should allow the collector.py code to send write/update commands to for
+example update the text showed on an LCD display.
+
+#### WRITE MESSAGE (>5 bytes):
+```
+0001 0000 - PACKET_ID - 0001 0010 - 0000 0000 - 0000 0101 - hello world\ngood
+```
+
+#### RESPONSE PACKET (5 bytes):
+```
+0001 1111 - PACKET_ID - 0001 0010 - 0000 0000 - 0000 0101
+```

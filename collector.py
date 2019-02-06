@@ -82,7 +82,7 @@ def openweather_get_weather(city_id, key):
     response = requests.get(url, params = parameters)
 
     if response.status_code == requests.codes.ok:
-        json_data = r.json()
+        json_data = response.json()
         logging.debug(json_data["main"])
         #json_data["main"]["temp"]
         #json_data["weather"][0]["description"]
@@ -101,6 +101,7 @@ def main():
 
     debug = False
     openweather = False
+    openweather_frequency = 2 #Effectively update the data every 2 cycles
     openweather_current_temp = 0
     openweather_current_weather = "None"
 
@@ -165,14 +166,14 @@ def main():
             logging.warn("Ping to device " + dev.get_name() + " failed, so the device has been disabled.")
             dev.disable()
 
-    #Colleccting weather for Dublin
+    #Colleccting weather for Dublin from OpenWeatherMap
     if openweather == True:
         logging.debug("Retrieving first weather metric from OpenWeatherMap API")
         weather =  openweather_get_weather(openweathermap_city_id, openweathermap_key)
         if weather not False:
             openweather_current_temp = weather["main"]["temp"]
             openweather_current_weather = weather["weather"][0]["description"]
-            #I should keep an eye on the length of "description" since this will go to the LCD display
+            #I should keep an eye on the length of "description" since this will go to the 16x2 LCD display
 
     starttime = time.time()
 
@@ -181,10 +182,23 @@ def main():
         for dev in DEVICES:
             if dev.is_enabled():
                 logging.debug("Reading device " + str(dev.get_name()))
-                sensor = 0
+                sensor = 0 # Hardcoded sensor 1 (temp1)
                 measure = dev.read_sensor(sensor)
                 logging.debug("Sensor read: " + str(measure))
                 store_collected_metric(configuration, timestamp, dev.get_name(), dev.get_sensor_name(sensor), measure)
+
+                if openweather and openweather_frequency == 0:
+                    logging.debug("Updating data from OpenWeatherMap.")
+                    openweather_frequency = 2
+                    weather =  openweather_get_weather(openweathermap_city_id, openweathermap_key)
+                    if weather not False:
+                        sensor = 2 # Hardcoded sensor 2 (LCD)
+                        openweather_current_temp = weather["main"]["temp"]
+                        openweather_current_weather = weather["weather"][0]["description"]
+                        dev.write_sensor(sensor, (openweather_current_temp, openweather_current_weather))
+                else:
+                    openweather_frequency = openweather_frequency - 1
+
             else:
                 logging.warn("Skipping " + dev.get_name() + " because is disabled.")
         back_to_sleep_for = (frequency - ((time.time() - starttime)%frequency))

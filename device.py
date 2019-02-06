@@ -83,8 +83,36 @@ class Arduino(Device):
         logging.debug("Received: " + str(received_message))
         return self._parse_sensor_read(received_message)
 
+    def write_sensor(self, sensor_id, data):
+        """
+        This function is meant to be able to update sensor information or send
+        data for example to update the LCD.
+        """
+        message_id = self._get_message_id()
+        message = bytearray([PROTOCOL|REQUEST]) #B0
+        message.append(message_id)              #B1
+        message.append(WRITE)                    #B2
+        message.append(sensor_id)			#B3
+
+        if self.available_sensors[sensor_id]['type'] == 2: #Sensor is actually a LCD display
+            logging.deubg("About to write to sensor " + self.available_sensors[sensor_id]['name'] + " type " + str(self.available_sensors[sensor_id]['type']))
+            #Copy the letters one by one on the message payload.
+            aux = list(data[0])
+            for i in aux:
+                message.append(ord(i))
+            message.append(ord('\n'))
+            aux = list(data[1])
+            for i in aux:
+                message.append(ord(i))
+        size = len(message)
+        message.append(size + 1)
+        #Send the message
+        logging.debug("Message ID " + str(message_id))
+        logging.debug("Sending:" + str(message))
+        self._send_message(message)
+
     def get_sensor_name(self, id):
-        return self.available_sensors[0]['name']
+        return self.available_sensors[id]['name']
 
     def identify_device_sensors(self):
         """
