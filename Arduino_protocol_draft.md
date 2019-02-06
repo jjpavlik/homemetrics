@@ -52,6 +52,7 @@ Where:
 * type will be the higher nible of the first byte after "\n" and can be
   * temp = 0000
   * humidity = 0001
+  * LCD Screen = 0002
   * etc
 * format will be the lower nible of the first byte after "\n" and can be
   * int = 0000

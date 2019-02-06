@@ -35,10 +35,12 @@ byte buffer_index;
 #define GET_SENSORS 15 // ____ 1111
 #define TEMP1 0
 #define TEMP2 1
+#define SCREEN1 2
 
 // Sensors
 // Higher nibble is type
 #define TEMP 0
+#define LCD 2
 // Lower nible is format
 #define INTEGER 0
 #define FLOAT 1
@@ -112,7 +114,7 @@ boolean send_ping_response(byte packet_protocol_version, byte packet_id)
 boolean send_available_sensors(byte packet_protocol_version, byte packet_id)
 {
     // Maybe this should be a single global buffer, to prevent taking stack memory in every send_XXX function...
-    byte response_packet[20];
+    byte response_packet[30];
     int sent;
     response_packet[0] = packet_protocol_version | RESPONSE;
     response_packet[1] = packet_id;
@@ -126,6 +128,7 @@ boolean send_available_sensors(byte packet_protocol_version, byte packet_id)
     response_packet[9] = '1';
     response_packet[10] = '\n';
     response_packet[11] = TEMP | INTEGER;
+
     response_packet[12] = 't';
     response_packet[13] = 'e';
     response_packet[14] = 'm';
@@ -134,8 +137,18 @@ boolean send_available_sensors(byte packet_protocol_version, byte packet_id)
     response_packet[17] = '\n';
     response_packet[18] = TEMP | FLOAT;
 
-    sent = Serial.write(response_packet, 19);
-    if(sent == 19)
+    response_packet[19] = 's';
+    response_packet[20] = 'c';
+    response_packet[21] = 'r';
+    response_packet[22] = 'e';
+    response_packet[23] = 'e';
+    response_packet[24] = 'n';
+    response_packet[25] = '1';
+    response_packet[26] = '\n';
+    response_packet[27] = LCD | CHAR;
+
+    sent = Serial.write(response_packet, 28);
+    if(sent == 28)
     {
       return true;
     }
@@ -165,6 +178,12 @@ boolean send_sensor_read(byte packet_protocol_version, byte packet_id, byte sens
         break;
     }
     return true;
+}
+
+// This function updates the text on the LCD according to what the Pi sent.
+void update_screen1()
+{
+  return 0;
 }
 
 // This function reads the full packet and actions on it according to whether it's a request or a response
@@ -199,6 +218,9 @@ boolean process_packet()
         break;
       case READ | TEMP1:
         send_sensor_read(packet_protocol_version, packet_id, TEMP1);
+        break;
+      case WRITE | SCREEN1:
+        update_screen1();
         break;
       default:
         send_ping_response(packet_protocol_version, packet_id);
@@ -239,4 +261,3 @@ void loop(void)
     }
   }
 }
-
