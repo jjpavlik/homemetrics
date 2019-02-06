@@ -9,6 +9,7 @@ import fcntl
 import configparser
 import boto3
 import signal
+import requests
 
 DEVICES = []
 SENSORS = []
@@ -38,7 +39,7 @@ def store_collected_metric(parameters, timestamp, device, sensor, value):
     """
     client = boto3.client("sqs")
     url = parameters['QUEUE']['url']
-    
+
     if len(MEASUREMENTS) > 0:
         logging.debug("A few measurements queuing locally :O " + str(len(MEASUREMENTS)) + " trying to push them now")
         for measure in MEASUREMENTS:
@@ -59,10 +60,35 @@ def __push_message(client, url, message):
 
 def term_handler(signum, frame):
     """
-    Termination handler, sets TERMINATE to True and let things go back to where they were.
+    Termination handler, sets TERMINATE to True and let things go back to where
+    they were.
     """
     global TERMINATE
     TERMINATE = True
+
+def openweather_get_weather(city_id, key):
+    """
+    This function uses https://openweathermap.org/current API to get weather
+    data for the given city_id. Example
+    curl "https://api.openweathermap.org/data/2.5/weather?id=2964574&units=metric&appid=LALALA"
+        {"coord":{"lon":-6.27,"lat":53.34},
+        "weather":[{"id":802,"main":"Clouds","description":"scattered clouds","icon":"03n"}],"base":"stations",
+        "main":{"temp":5.5,"pressure":1014,"humidity":81,"temp_min":5,"temp_max":6},
+        "visibility":10000,"wind":{"speed":3.1,"deg":220},"clouds":{"all":40},"dt":1549407600,
+        ...}
+    """
+    parameters = {"id":city_id, "units":"metric", "appid":key}
+    url = "https://api.openweathermap.org/data/2.5/weather"
+    response = requests.get(url, params = parameters)
+
+    if response.status_code == requests.codes.ok:
+        json_data = r.json()
+        logging.debug(json_data["main"])
+        #json_data["main"]["temp"]
+        #json_data["weather"][0]["description"]
+        return json_data
+    logging.warn("Call to OpenWeatherMap returned " + str(response.status_code))
+    return False
 
 def load_sensor(data):
     pass
@@ -71,8 +97,12 @@ def usage():
     pass
 
 def main():
-    debug = False
     global TERMINATE
+
+    debug = False
+    openweather = False
+    openweather_current_temp = 0
+    openweather_current_weather = "None"
 
     signal.signal(signal.SIGTERM, term_handler)
 
@@ -81,7 +111,7 @@ def main():
     frequency = int(configuration['COLLECTOR']['frequency'])
 
     try:
-        opts, args = getopt.getopt(sys.argv[1:], "hdf:", ["help", "debug"])
+        opts, args = getopt.getopt(sys.argv[1:], "hdf:", ["help", "debug", "openweather"])
     except getopt.GetoptError as err:
         print(err)  # will print something like "option -a not recognized"
         usage()
@@ -94,6 +124,11 @@ def main():
             debug = True
         elif o in "-f":
             frequency = int(a)
+        elif o in ("--openweather"):
+            openweathermap_key = configuration['COLLECTOR']['openweathermap-key']
+            openweathermap_name = configuration['COLLECTOR']['openweathermap-name']
+            openweathermap_city_id = configuration['COLLECTOR']['openweathermap-city-id']
+            openweather = True
         else:
             assert False, "Unhandled option"
 
@@ -129,6 +164,15 @@ def main():
         else:
             logging.warn("Ping to device " + dev.get_name() + " failed, so the device has been disabled.")
             dev.disable()
+
+    #Colleccting weather for Dublin
+    if openweather == True:
+        logging.debug("Retrieving first weather metric from OpenWeatherMap API")
+        weather =  openweather_get_weather(openweathermap_city_id, openweathermap_key)
+        if weather not False:
+            openweather_current_temp = weather["main"]["temp"]
+            openweather_current_weather = weather["weather"][0]["description"]
+            #I should keep an eye on the length of "description" since this will go to the LCD display
 
     starttime = time.time()
 
