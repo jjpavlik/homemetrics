@@ -115,6 +115,8 @@ class Arduino(Device):
         logging.debug("Message ID " + str(message_id))
         logging.debug("Sending:" + str(message))
         self._send_message(message)
+        received_message = self._receive_message()
+        logging.debug("Received message " + str(received_message))
 
     def get_sensor_name(self, id):
         return self.available_sensors[id]['name']
