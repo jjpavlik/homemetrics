@@ -191,6 +191,7 @@ def main():
                 store_collected_metric(configuration, timestamp, dev.get_name(), dev.get_sensor_name(sensor), measure)
 
                 if openweather and openweather_frequency == 0:
+                    sensor = 2
                     logging.debug("Updating data from OpenWeatherMap.")
                     openweather_frequency = 2
                     weather = openweather_get_weather(openweathermap_city_id, openweathermap_key)
