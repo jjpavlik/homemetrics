@@ -28,7 +28,7 @@ byte buffer_index;
 // B2
 // Higher nibble
 #define READ 0  // 0000 ____
-#define WRITE 1 // 0001 ____
+#define WRITE 16 // 0001 ____
 #define PING 240 // 1111 0000
 #define CONTROL 224 // 1110 ____
 //Lower nible defines the sensor ...
@@ -39,8 +39,8 @@ byte buffer_index;
 
 // Sensors
 // Higher nibble is type
-#define TEMP 0
-#define LCD 2
+#define TEMP 0 // 0000 ____
+#define LCD 32 // 0010 ____
 // Lower nible is format
 #define INTEGER 0
 #define FLOAT 1
