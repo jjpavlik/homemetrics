@@ -99,7 +99,7 @@ class Arduino(Device):
         if self.available_sensors[sensor_id]['type'] == 32: #Sensor is actually a LCD display
             temp = str(data[0])
             description = data[1]
-            message.append(5 + len(temp) + 1 + len(description) #B4 SIZE
+            message.append(5 + len(temp) + 1 + len(description)) #B4 SIZE
             #Copy the letters one by one on the message payload.
             aux = list(temp)
             for i in aux:
