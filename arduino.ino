@@ -109,6 +109,25 @@ boolean send_ping_response(byte packet_protocol_version, byte packet_id)
   return false;
 }
 
+// Answer packaget for Write operations, some sort of ACK
+boolean send_write_response(byte packet_protocol_version, byte packet_id)
+{
+  byte response_packet[5];
+  int sent;
+  response_packet[0] = packet_protocol_version | RESPONSE;
+  response_packet[1] = packet_id;
+  response_packet[2] = WRITE;
+  response_packet[3] = 0; // Not used for ping, maybe I should rework the bytes order an put size here instead to prevent this useless byte
+  response_packet[4] = 5;
+
+  sent = Serial.write(response_packet, 5);
+  if(sent == 5)
+  {
+    return true;
+  }
+  return false;
+}
+
 // This message lets the collector know which sensors are available on this devices
 // along with the name, and the format of the data.
 boolean send_available_sensors(byte packet_protocol_version, byte packet_id)
@@ -182,9 +201,9 @@ boolean send_sensor_read(byte packet_protocol_version, byte packet_id, byte sens
 
 // This function updates the text on the LCD according to what the Pi sent.
 // First needs to pull out the two strings one for each row :(
-void update_screen1()
+boolean update_screen1()
 {
-  return 0;
+  return true;
 }
 
 // This function reads the full packet and actions on it according to whether it's a request or a response
@@ -222,6 +241,7 @@ boolean process_packet()
         break;
       case WRITE | SCREEN1:
         update_screen1();
+        send_write_response(packet_protocol_version, packet_id);
         break;
       default:
         send_ping_response(packet_protocol_version, packet_id);

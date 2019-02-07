@@ -170,7 +170,7 @@ def main():
     if openweather == True:
         logging.debug("Retrieving first weather metric from OpenWeatherMap API")
         weather =  openweather_get_weather(openweathermap_city_id, openweathermap_key)
-        if weather not False:
+        if not weather:
             openweather_current_temp = weather["main"]["temp"]
             openweather_current_weather = weather["weather"][0]["description"]
             #I should keep an eye on the length of "description" since this will go to the 16x2 LCD display

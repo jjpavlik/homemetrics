@@ -95,6 +95,7 @@ class Arduino(Device):
         message.append(sensor_id)			#B3
 
         if self.available_sensors[sensor_id]['type'] == 2: #Sensor is actually a LCD display
+            message.append(5 + len(data[0]) + 1 + len(data[1])) #B4 SIZE
             logging.deubg("About to write to sensor " + self.available_sensors[sensor_id]['name'] + " type " + str(self.available_sensors[sensor_id]['type']))
             #Copy the letters one by one on the message payload.
             aux = list(data[0])
@@ -104,8 +105,9 @@ class Arduino(Device):
             aux = list(data[1])
             for i in aux:
                 message.append(ord(i))
-        size = len(message)
-        message.append(size + 1)
+        else:
+            message.append(5) #B4
+
         #Send the message
         logging.debug("Message ID " + str(message_id))
         logging.debug("Sending:" + str(message))
