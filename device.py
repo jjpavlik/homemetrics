@@ -8,7 +8,7 @@ REQUEST = 0 # ____ 0000
 
 #Higher nible B2
 READ = 0  # 0000 ____
-WRITE = 1 # 0001 ____
+WRITE = 16 # 0001 ____
 PING = 240 # 1111 0000
 CONTROL = 224 #1110 ____
 #Lower nible B2 defines the sensor ...
@@ -94,7 +94,7 @@ class Arduino(Device):
         message.append(WRITE)                    #B2
         message.append(sensor_id)			#B3
 
-        if self.available_sensors[sensor_id]['type'] == 2: #Sensor is actually a LCD display
+        if self.available_sensors[sensor_id]['type'] == 32: #Sensor is actually a LCD display
             message.append(5 + len(data[0]) + 1 + len(data[1])) #B4 SIZE
             logging.deubg("About to write to sensor " + self.available_sensors[sensor_id]['name'] + " type " + str(self.available_sensors[sensor_id]['type']))
             #Copy the letters one by one on the message payload.
