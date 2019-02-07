@@ -191,7 +191,7 @@ def main():
                     logging.debug("Updating data from OpenWeatherMap.")
                     openweather_frequency = 2
                     weather =  openweather_get_weather(openweathermap_city_id, openweathermap_key)
-                    if weather not False:
+                    if not weather:
                         sensor = 2 # Hardcoded sensor 2 (LCD)
                         openweather_current_temp = weather["main"]["temp"]
                         openweather_current_weather = weather["weather"][0]["description"]
