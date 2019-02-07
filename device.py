@@ -101,10 +101,12 @@ class Arduino(Device):
             description = data[1]
             message.append(5 + len(temp) + 1 + len(description) #B4 SIZE
             #Copy the letters one by one on the message payload.
-            for i in list(temp):
+            aux = list(temp)
+            for i in aux:
                 message.append(ord(i))
             message.append(ord('\n'))
-            for i in list(description):
+            aux = list(description)
+            for i in aux:
                 message.append(ord(i))
         else:
             message.append(5) #B4
