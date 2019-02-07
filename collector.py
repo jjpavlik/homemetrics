@@ -169,8 +169,11 @@ def main():
     #Colleccting weather for Dublin from OpenWeatherMap
     if openweather == True:
         logging.debug("Retrieving first weather metric from OpenWeatherMap API")
-        weather =  openweather_get_weather(openweathermap_city_id, openweathermap_key)
-        if not weather:
+        weather = openweather_get_weather(openweathermap_city_id, openweathermap_key)
+        if weather == False:
+            openweather_current_temp = "100"
+            openweather_current_weather = "No data :("
+        else:
             openweather_current_temp = weather["main"]["temp"]
             openweather_current_weather = weather["weather"][0]["description"]
             #I should keep an eye on the length of "description" since this will go to the 16x2 LCD display
@@ -190,11 +193,14 @@ def main():
                 if openweather and openweather_frequency == 0:
                     logging.debug("Updating data from OpenWeatherMap.")
                     openweather_frequency = 2
-                    weather =  openweather_get_weather(openweathermap_city_id, openweathermap_key)
-                    if not weather:
-                        sensor = 2 # Hardcoded sensor 2 (LCD)
+                    weather = openweather_get_weather(openweathermap_city_id, openweathermap_key)
+                    if weather == False:
+                        openweather_current_temp = "100"
+                        openweather_current_weather = "No data :("
+                    else:
                         openweather_current_temp = weather["main"]["temp"]
                         openweather_current_weather = weather["weather"][0]["description"]
+                        #I should keep an eye on the length of "description" since this will go to the 16x2 LCD display
                         dev.write_sensor(sensor, (openweather_current_temp, openweather_current_weather))
                 else:
                     openweather_frequency = openweather_frequency - 1
