@@ -7,7 +7,7 @@ import datetime
 import boto3
 import json
 import re
-import configparser 
+import configparser
 import signal
 
 CONFIGURATION_FILE = "general.conf"
@@ -57,6 +57,19 @@ def acknowledge_message(message, parameters):
 
     client.delete_message(QueueUrl = url, ReceiptHandle = message['ReceiptHandle'])
 
+def is_message_valid(message):
+    """
+    Some message field validation in order not to crash the pusher and to make
+    sure we are getting good data from the sensors.
+    """
+    parts = json.loads(message)
+    try:
+        float(parts['value'])
+    except ValueError as e:
+        logging.warn(e)
+        return False
+    return True
+
 def term_handler(signum, frame):
     """
     Just sets TERMINATE to True and goes back to where things were
@@ -95,7 +108,7 @@ def main():
             sys.exit(2)
 
     FORMAT = '%(asctime)s - %(name)s - %(levelname)s - %(message)s'
-    
+
     if debug:
         logging.basicConfig(filename="pusher.log", format=FORMAT, level=logging.DEBUG)
     else:
@@ -107,9 +120,14 @@ def main():
         messages = get_available_messages(configuration)
         if 'Messages' in messages.keys():
             for i in messages['Messages']:
-                res = push_metric(i['Body'], configuration)
-                if res:
-                    acknowledge_message(i, configuration)
+                # In theory any message that hasn't been acked will be retried once and then moved to the deadletter queue.
+                if is_message_valid(i):
+                    res = push_metric(i['Body'], configuration)
+                    if res:
+                        acknowledge_message(i, configuration)
+                    else:
+                        # Watch out... push_metric always returns True now xD
+                        logging.warn("For some reason message " + str(i) + " wasn't pushed correctly to CW.")
         back_to_sleep_for = (frequency - ((time.time() - starttime)%frequency))
         logging.debug("Sleeping for " + str(back_to_sleep_for))
         time.sleep(back_to_sleep_for)
