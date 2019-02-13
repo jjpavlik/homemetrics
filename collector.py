@@ -176,6 +176,8 @@ def main():
         else:
             openweather_current_temp = weather["main"]["temp"]
             openweather_current_weather = weather["weather"][0]["description"]
+            if len(openweather_current_weather) > 16:
+                openweather_current_weather = openweather_current_weather[:16]
             #I should keep an eye on the length of "description" since this will go to the 16x2 LCD display
 
     starttime = time.time()
@@ -201,6 +203,8 @@ def main():
                     else:
                         openweather_current_temp = weather["main"]["temp"]
                         openweather_current_weather = weather["weather"][0]["description"]
+                        if len(openweather_current_weather) > 16:
+                            openweather_current_weather = openweather_current_weather[:16]
                         #I should keep an eye on the length of "description" since this will go to the 16x2 LCD display
                         dev.write_sensor(sensor, (openweather_current_temp, openweather_current_weather))
                 else:
