@@ -6,6 +6,7 @@ uid=$(id -u)
 
 if [[ $uid != 0 ]]; then
   echo "Please run as root"
+  exit 1
 fi
 
 if [ -d "$INSTALL_FOLDER" ]; then
