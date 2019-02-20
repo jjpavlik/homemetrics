@@ -7,7 +7,7 @@ function start {
 }
 
 function stop {
-  echo "Stopping service"
+  kill -15 $(cat /opt/homemetrics/pusher.pid)
 }
 
 function status {
