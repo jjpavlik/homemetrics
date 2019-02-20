@@ -18,6 +18,7 @@ mkdir -p $INSTALL_FOLDER
 echo "Copying files to $INSTALL_FOLDER"
 cp *.py $INSTALL_FOLDER/
 cp requirements.txt $INSTALL_FOLDER/
+cp -pr systemd $INSTALL_FOLDER/
 
 echo "Creating virtualenv"
 virtualenv -p python3 $INSTALL_FOLDER
@@ -31,4 +32,5 @@ pip install -r requirements.txt
 deactivate
 
 echo "Copying systemd files:"
+cd $INSTALL_FOLDER/
 cp systemd/pusher.service /etc/systemd/system/
