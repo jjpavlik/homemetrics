@@ -2,7 +2,7 @@
 
 function start {
   source /opt/homemetrics/bin/activate
-  exec python collector.py -f 30
+  exec python collector.py --openweather
 }
 
 function stop {
@@ -30,6 +30,6 @@ case "$1" in
       start
       ;;
   *)
-      echo $"Usage: $0 {start|stop|restart|status}"
+      echo "Usage: $0 {start|stop|restart|status}"
       exit 1
 esac

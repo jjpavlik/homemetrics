@@ -19,6 +19,8 @@ echo "Copying files to $INSTALL_FOLDER"
 cp *.py $INSTALL_FOLDER/
 cp requirements.txt $INSTALL_FOLDER/
 cp -pr systemd $INSTALL_FOLDER/
+cp *.conf $INSTALL_FOLDER/
+cp *.sh $INSTALL_FOLDER/
 
 echo "Creating virtualenv"
 virtualenv -p python3 $INSTALL_FOLDER
