@@ -120,7 +120,7 @@ def main():
         if 'Messages' in messages.keys():
             for i in messages['Messages']:
                 # In theory any message that hasn't been acked will be retried once and then moved to the deadletter queue.
-                if is_message_valid(i):
+                if is_message_valid(i['Body']):
                     res = push_metric(i['Body'], configuration)
                     if res:
                         acknowledge_message(i, configuration)
