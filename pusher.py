@@ -63,7 +63,7 @@ def is_message_valid(message):
     sure we are getting good data from the sensors.
     """
     try:
-        float(parts['value'])
+        float(message['value'])
     except ValueError as e:
         logging.warn(e)
         return False
