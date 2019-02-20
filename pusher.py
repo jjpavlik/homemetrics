@@ -62,8 +62,9 @@ def is_message_valid(message):
     Some message field validation in order not to crash the pusher and to make
     sure we are getting good data from the sensors.
     """
+    parts = json.loads(message)
     try:
-        float(message['value'])
+        float(parts['value'])
     except ValueError as e:
         logging.warn(e)
         return False
