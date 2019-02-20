@@ -7,7 +7,7 @@ function start {
 }
 
 function stop {
-  echo "Stopping service"
+  echo "Stopping collector.py"
 }
 
 function status {

@@ -7,7 +7,7 @@ function start {
 }
 
 function stop {
-  kill -15 $(cat /opt/homemetrics/pusher.pid)
+  echo "Stopping pusher.py"
 }
 
 function status {
