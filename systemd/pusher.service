@@ -6,8 +6,6 @@ After=network.target
 [Service]
 Type=simple
 ExecStart=/opt/homemetrics/pusher.sh start
-PIDFile=/opt/homemetrics/pusher.pid
-ExecStop=/opt/homemetrics/pusher.sh stop
 TimeoutStopSec=32
 
 [Install]

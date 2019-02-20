@@ -6,5 +6,6 @@ After=network.target
 [Service]
 Type=simple
 ExecStart=/opt/homemetrics/collector.sh start
+TimeoutStopSec=62
 
 [Install]
