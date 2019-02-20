@@ -1,16 +1,17 @@
 #!/bin/bash
 
 function start {
-  source /opt/homemetrics/bin/activate
+  source bin/activate
+  source credentials.conf
   exec python collector.py --openweather
 }
 
 function stop {
-
+  echo "Stopping service"
 }
 
 function status {
-
+  echo "Checking status"
 }
 
 cd /opt/homemetrics
