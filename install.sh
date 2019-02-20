@@ -22,7 +22,7 @@ echo "Creating virtualenv"
 virtualenv -p python3 $INSTALL_FOLDER
 
 cd $INSTALL_FOLDER/
-source ./bin/source
+source ./bin/activate
 
 echo "Installing requirements"
 pip install requirements.text
