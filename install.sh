@@ -25,7 +25,7 @@ cd $INSTALL_FOLDER/
 source ./bin/activate
 
 echo "Installing requirements"
-pip install -r requirements.text
+pip install -r requirements.txt
 
 deactivate
 
