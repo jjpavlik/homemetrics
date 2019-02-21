@@ -37,3 +37,4 @@ deactivate
 echo "Copying systemd files:"
 cd $INSTALL_FOLDER/
 cp systemd/pusher.service /etc/systemd/system/
+cp systemd/collector.service /etc/systemd/system/

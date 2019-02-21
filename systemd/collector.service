@@ -1,11 +1,12 @@
 [Unit]
 Description=Collector service, taking data from the Arduino.
 Documentation=https://github.com/jjpavlik/homemetrics
-After=network.target
+Requires=multi-user.target
 
 [Service]
 Type=simple
 ExecStart=/opt/homemetrics/collector.sh start
 TimeoutStopSec=62
+Restart=on-failure
 
 [Install]

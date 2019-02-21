@@ -1,11 +1,12 @@
 [Unit]
 Description=Pusher service, taking data from SQS and sending it to CW.
 Documentation=https://github.com/jjpavlik/homemetrics
-After=network.target
+Requires=multi-user.target
 
 [Service]
 Type=simple
 ExecStart=/opt/homemetrics/pusher.sh start
 TimeoutStopSec=32
+Restart=on-failure
 
 [Install]
