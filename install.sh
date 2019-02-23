@@ -21,6 +21,7 @@ cp requirements.txt $INSTALL_FOLDER/
 cp -pr systemd $INSTALL_FOLDER/
 cp *.conf $INSTALL_FOLDER/
 cp *.sh $INSTALL_FOLDER/
+cp arduino.ino $INSTALL_FOLDER/
 chmod +x $INSTALL_FOLDER/*.sh
 
 echo "Creating virtualenv"
