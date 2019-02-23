@@ -3,7 +3,11 @@
 function start {
   source bin/activate
   source credentials.conf
-  exec python pusher.py -f 30
+  if [ -e debug ]; then
+    exec python pusher.py -f 30 --debug
+  else
+    exec python pusher.py -f 30
+  fi
 }
 
 function stop {

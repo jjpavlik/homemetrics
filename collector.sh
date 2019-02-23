@@ -3,7 +3,11 @@
 function start {
   source bin/activate
   source credentials.conf
-  exec python collector.py --openweather
+  if [ -e debug ]; then
+    exec python collector.py --openweather --debug
+  else
+    exec python collector.py --openweather    
+  fi
 }
 
 function stop {
