@@ -244,12 +244,12 @@ boolean read_screen_data(byte size)
   rboundary = 16;
   while(boundary > 0 && rboundary > 0)
   {
-    row0[ctr] = *(read + ctr);
+    row1[ctr] = *(read + ctr);
     ctr++;
     boundary--;
     rboundary--;
   }
-  row0[ctr] = *read;
+  row1[ctr] = *read;
   return true;
 }
 
