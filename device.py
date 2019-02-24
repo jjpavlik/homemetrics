@@ -91,8 +91,8 @@ class Arduino(Device):
         message_id = self._get_message_id()
         message = bytearray([PROTOCOL|REQUEST]) #B0
         message.append(message_id)              #B1
-        message.append(WRITE)                    #B2
-        message.append(sensor_id)			#B3
+        message.append([WRITE|sensor_id])                    #B2
+        message.append(sensor_id)			#B3 is actually the data format, so this is just a placeholder here.
 
         logging.debug("About to write to sensor " + self.available_sensors[sensor_id]['name'] + " type " + str(self.available_sensors[sensor_id]['type']))
 
