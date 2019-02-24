@@ -74,7 +74,7 @@ void setup(void)
   // Set cursor position to write
   lcd.setCursor(0,0);
   lcd.print(row0);
-  lcd.setcursor(0,1);
+  lcd.setCursor(0,1);
   lcd.print(row1);
 }
 
@@ -229,7 +229,7 @@ boolean read_screen_data(byte size)
 
   read = &receive_buffer[5];
 
-  while(read != '\n' && rboundary > 0)
+  while(*(read + ctr) != '\n' && rboundary > 0)
   {
     row0[ctr] = *(read + ctr);
     ctr++;
@@ -239,6 +239,7 @@ boolean read_screen_data(byte size)
   boundary = boundary - ctr;
 
   read = read + ctr + 1;
+  boundary = boundary - 1;
   ctr = 0;
   rboundary = 16;
   while(boundary > 0 && rboundary > 0)
@@ -248,7 +249,7 @@ boolean read_screen_data(byte size)
     boundary--;
     rboundary--;
   }
-  row0[ctr] = *read
+  row0[ctr] = *read;
   return true;
 }
 
@@ -259,7 +260,7 @@ boolean update_screen1()
   // Set cursor position to write
   lcd.setCursor(0,0);
   lcd.print(row0);
-  lcd.setcursor(0,1);
+  lcd.setCursor(0,1);
   lcd.print(row1);
 
   return true;
