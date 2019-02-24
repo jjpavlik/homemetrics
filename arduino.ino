@@ -258,6 +258,7 @@ boolean read_screen_data(byte size)
 boolean update_screen1()
 {
   // Set cursor position to write
+  lcd.clear();
   lcd.setCursor(0,0);
   lcd.print(row0);
   lcd.setCursor(0,1);
