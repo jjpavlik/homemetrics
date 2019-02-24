@@ -222,7 +222,7 @@ boolean send_sensor_read(byte packet_protocol_version, byte packet_id, byte sens
 boolean read_screen_data(byte size)
 {
   // Data should start in B5 in receive_buffer. Two strings should come, separated by '\n'
-  char *read;
+  byte *read;
   byte ctr = 0;
   byte boundary = size - 5;// Used to make sure we don't read beyond the what we received.
   byte rboundary = 16;// To make sure I don't go beyond row0 or row1

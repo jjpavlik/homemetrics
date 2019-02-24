@@ -118,6 +118,15 @@ class Arduino(Device):
         received_message = self._receive_message()
         logging.debug("Received message " + str(received_message))
 
+    def _good_response(sent_id, received_id):
+        """
+        See wether the returned packet is an actual response of the one previously sent
+        Initially just check that the packet returned ID matches
+        """
+        if sent_id == received_id:
+            return True
+        return False
+
     def get_sensor_name(self, id):
         return self.available_sensors[id]['name']
 
