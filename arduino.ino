@@ -13,6 +13,13 @@ OneWire oneWire(ONE_WIRE_BUS);
 // Pass our oneWire reference to Dallas Temperature.
 DallasTemperature sensors(&oneWire);
 
+// LCD CONFIGURATION
+// PINs
+const int rs = 12, en = 8, d4 = 6, d5 = 5, d6 = 4, d7 = 3;
+LiquidCrystal lcd(rs, en, d4, d5, d6, d7);
+char row0[16] = "-Just Started-";
+char row1[16] = "No Data Avail...";
+
 // Reception buffer
 #define BUFFER_SIZE 256
 byte receive_buffer[BUFFER_SIZE];
@@ -61,6 +68,14 @@ void setup(void)
   sensors.begin();
   packet_ready = false;
   buffer_index = 0;
+
+  // Start lcd
+  lcd.begin(16, 2);
+  // Set cursor position to write
+  lcd.setCursor(0,0);
+  lcd.print(row0);
+  lcd.setcursor(0,1);
+  lcd.print(row1);
 }
 
 // Pull all the available data from the UART buffer
@@ -200,10 +215,53 @@ boolean send_sensor_read(byte packet_protocol_version, byte packet_id, byte sens
     return true;
 }
 
+// Pulls the data from receive_buffer and places it in row0 and row1
+// Meh... all this memory movement might not be necessary, but it is a start.
+// TODO: maybe there should be some boundary checks here, to make sure we don't
+// go beyond row0 and row1...
+boolean read_screen_data(byte size)
+{
+  // Data should start in B5 in receive_buffer. Two strings should come, separated by '\n'
+  char *read;
+  byte ctr = 0;
+  byte boundary = size - 5;// Used to make sure we don't read beyond the what we received.
+  byte rboundary = 16;// To make sure I don't go beyond row0 or row1
+
+  read = &receive_buffer[5];
+
+  while(read != '\n' && rboundary > 0)
+  {
+    row0[ctr] = *(read + ctr);
+    ctr++;
+    rboundary--;
+  }
+  row0[ctr] = *(read + ctr);
+  boundary = boundary - ctr;
+
+  read = read + ctr + 1;
+  ctr = 0;
+  rboundary = 16;
+  while(boundary > 0 && rboundary > 0)
+  {
+    row0[ctr] = *(read + ctr);
+    ctr++;
+    boundary--;
+    rboundary--;
+  }
+  row0[ctr] = *read
+  return true;
+}
+
 // This function updates the text on the LCD according to what the Pi sent.
 // First needs to pull out the two strings one for each row :(
 boolean update_screen1()
 {
+  // Set cursor position to write
+  lcd.setCursor(0,0);
+  lcd.print(row0);
+  lcd.setcursor(0,1);
+  lcd.print(row1);
+
   return true;
 }
 
@@ -241,6 +299,7 @@ boolean process_packet()
         send_sensor_read(packet_protocol_version, packet_id, TEMP1);
         break;
       case WRITE | SCREEN1:
+        read_screen_data(packet_size);
         update_screen1();
         send_write_response(packet_protocol_version, packet_id);
         break;
