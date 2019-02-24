@@ -18,7 +18,7 @@ DallasTemperature sensors(&oneWire);
 const int rs = 12, en = 8, d4 = 6, d5 = 5, d6 = 4, d7 = 3;
 LiquidCrystal lcd(rs, en, d4, d5, d6, d7);
 char row0[16] = "-Just Started-";
-char row1[16] = "No Data Avail...";
+char row1[16] = "No Data Avail.";
 
 // Reception buffer
 #define BUFFER_SIZE 256
@@ -72,7 +72,7 @@ void setup(void)
   // Start lcd
   lcd.begin(16, 2);
   // Set cursor position to write
-  lcd.setCursor(0,0);
+  lcd.setCursor(1,0);
   lcd.print(row0);
   lcd.setCursor(0,1);
   lcd.print(row1);
