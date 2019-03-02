@@ -232,31 +232,36 @@ boolean read_screen_data(byte size)
   while(rboundary > 0)
   {
     if (*(read + ctr) != '\n')
-    {
+    {//Copy the content from the receive_buffer
       row0[ctr] = *(read + ctr);
       ctr++;
     }
     else
-    {
-      row0[ctr + (16 - rboundary)] = "";
+    {//Fill up the rest with spaces to override any previously stored characters
+      row0[ctr + rboundary - 1] = " ";
     }
     rboundary--;
   }
-  row0[ctr] = *(read + ctr);
+
   boundary = boundary - ctr;
 
   read = read + ctr + 1;
   boundary = boundary - 1;
   ctr = 0;
   rboundary = 16;
-  while(boundary > 0 && rboundary > 0)
+  while(rboundary > 0)
   {
-    row1[ctr] = *(read + ctr);
-    ctr++;
-    boundary--;
+    if (*(read + ctr) != '\n')
+    {//Copy the content from the receive_buffer
+      row1[ctr] = *(read + ctr);
+      ctr++;
+    }
+    else
+    {//Fill up the rest with spaces to override any previously stored characters
+      row1[ctr + rboundary - 1] = " ";
+    }
     rboundary--;
   }
-  row1[ctr] = *read;
   return true;
 }
 
