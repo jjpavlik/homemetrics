@@ -249,12 +249,14 @@ boolean read_screen_data(byte size)
   boundary = boundary - 1;
   ctr = 0;
   rboundary = 16;
+  
   while(rboundary > 0)
   {
-    if (*(read + ctr) != '\n')
+    if(boundary > 0)
     {//Copy the content from the receive_buffer
       row1[ctr] = *(read + ctr);
       ctr++;
+      boundary--;
     }
     else
     {//Fill up the rest with spaces to override any previously stored characters
