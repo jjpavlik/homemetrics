@@ -229,10 +229,17 @@ boolean read_screen_data(byte size)
 
   read = &receive_buffer[5];
 
-  while(*(read + ctr) != '\n' && rboundary > 0)
+  while(rboundary > 0)
   {
-    row0[ctr] = *(read + ctr);
-    ctr++;
+    if (*(read + ctr) != '\n')
+    {
+      row0[ctr] = *(read + ctr);
+      ctr++;
+    }
+    else
+    {
+      row0[ctr + (16 - rboundary)] = "";
+    }
     rboundary--;
   }
   row0[ctr] = *(read + ctr);
