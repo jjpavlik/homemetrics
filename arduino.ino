@@ -238,7 +238,7 @@ boolean read_screen_data(byte size)
     }
     else
     {//Fill up the rest with spaces to override any previously stored characters
-      row0[ctr + rboundary - 1] = " ";
+      row0[ctr + rboundary - 1] = 0x20;
     }
     rboundary--;
   }
@@ -249,7 +249,7 @@ boolean read_screen_data(byte size)
   boundary = boundary - 1;
   ctr = 0;
   rboundary = 16;
-  
+
   while(rboundary > 0)
   {
     if(boundary > 0)
@@ -260,7 +260,7 @@ boolean read_screen_data(byte size)
     }
     else
     {//Fill up the rest with spaces to override any previously stored characters
-      row1[ctr + rboundary - 1] = " ";
+      row1[ctr + rboundary - 1] = 0x20;
     }
     rboundary--;
   }
