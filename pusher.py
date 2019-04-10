@@ -38,7 +38,6 @@ def push_metric(message, configuration):
 
     return True
 
-
 def get_available_messages(parameters):
     """
     Pull the messages from the queue if any
@@ -112,8 +111,9 @@ def main():
     if debug:
         logging.basicConfig(filename="pusher.log", format=FORMAT, level=logging.DEBUG)
     else:
-        logging.basicConfig(filename="pusher.log", format=FORMAT, level=logging.WARN)
+        logging.basicConfig(filename="pusher.log", format=FORMAT, level=logging.INFO)
 
+    logging.info("Starting pusher.py")
     starttime = time.time()
     while not TERMINATE:
         timestamp = str(datetime.datetime.now())
@@ -132,7 +132,7 @@ def main():
         logging.debug("Sleeping for " + str(back_to_sleep_for))
         time.sleep(back_to_sleep_for)
 
-    logging.debug("Terminating... doing some housekeeping now.")
+    logging.info("Terminating... doing some housekeeping now.")
 
 if __name__ == "__main__":
     main()

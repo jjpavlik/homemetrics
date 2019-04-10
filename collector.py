@@ -15,7 +15,6 @@ DEVICES = []
 SENSORS = []
 DEVICES_FILE = "devices.conf"
 MEASUREMENTS = []
-METRICS_FILE = "metrics.log"
 CONFIGURATION_FILE = "general.conf"
 TERMINATE = False
 
@@ -41,14 +40,16 @@ def store_collected_metric(parameters, timestamp, device, sensor, value):
     url = parameters['QUEUE']['url']
 
     if len(MEASUREMENTS) > 0:
-        logging.debug("A few measurements queuing locally :O " + str(len(MEASUREMENTS)) + " trying to push them now")
+        logging.info("A few measurements queuing locally :O " + str(len(MEASUREMENTS)) + " trying to push them now")
         for measure in MEASUREMENTS:
             res = __push_message(client, url, measure)
             if not res:
+                logging.info("Appending measure to push later (n attemp)")
                 MEASUREMENTS.append(measure)
     message = json.dumps({"timestamp":timestamp, "device":device, "sensor":sensor, "value":value})
     res = __push_message(client, url, message)
     if not res:
+        logging.info("Appending measure to push later (first attemp)")
         MEASUREMENTS.append(measure)
 
 def __push_message(client, url, message):
@@ -81,13 +82,13 @@ def openweather_get_weather(city_id, key):
     url = "https://api.openweathermap.org/data/2.5/weather"
     response = requests.get(url, params = parameters)
 
+    logging.debug("Call to OpenWeatherMap returned " + str(response.status_code))
     if response.status_code == requests.codes.ok:
         json_data = response.json()
         logging.debug(json_data["main"])
         #json_data["main"]["temp"]
         #json_data["weather"][0]["description"]
         return json_data
-    logging.warn("Call to OpenWeatherMap returned " + str(response.status_code))
     return False
 
 def load_sensor(data):
@@ -138,7 +139,7 @@ def main():
     if debug:
         logging.basicConfig(filename='collector.log', format=FORMAT, level=logging.DEBUG)
     else:
-        logging.basicConfig(filename='collector.log', format=FORMAT, level=logging.WARN)
+        logging.basicConfig(filename='collector.log', format=FORMAT, level=logging.INFO)
 
     logging.info("Loading " + DEVICES_FILE)
     with open(DEVICES_FILE) as f:
@@ -217,7 +218,7 @@ def main():
         time.sleep(back_to_sleep_for)
 
     #do some house keeping
-    logging.debug("Terminating... doing some house keeping and shutting down")
+    logging.info("Terminating... doing some house keeping and shutting down")
     return 0
 
 if __name__ == '__main__':
