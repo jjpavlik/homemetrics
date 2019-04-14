@@ -12,7 +12,7 @@ fi
 if [ -d "$INSTALL_FOLDER" ]; then
   echo "Cleaning $INSTALL_FOLDER first, leaving log files."
   for i in `ls $INSTALL_FOLDER | grep -v ".log"`; do
-    rm -rf $i
+    rm -rf $INSTALL_FOLDER/$i
   done
 fi
 
