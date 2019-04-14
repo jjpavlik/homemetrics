@@ -67,30 +67,6 @@ def term_handler(signum, frame):
     global TERMINATE
     TERMINATE = True
 
-def openweather_get_weather(city_id, key):
-    """
-    This function uses https://openweathermap.org/current API to get weather
-    data for the given city_id. Example
-    curl "https://api.openweathermap.org/data/2.5/weather?id=2964574&units=metric&appid=LALALA"
-        {"coord":{"lon":-6.27,"lat":53.34},
-        "weather":[{"id":802,"main":"Clouds","description":"scattered clouds","icon":"03n"}],"base":"stations",
-        "main":{"temp":5.5,"pressure":1014,"humidity":81,"temp_min":5,"temp_max":6},
-        "visibility":10000,"wind":{"speed":3.1,"deg":220},"clouds":{"all":40},"dt":1549407600,
-        ...}
-    """
-    parameters = {"id":city_id, "units":"metric", "appid":key}
-    url = "https://api.openweathermap.org/data/2.5/weather"
-    response = requests.get(url, params = parameters)
-
-    logging.debug("Call to OpenWeatherMap returned " + str(response.status_code))
-    if response.status_code == requests.codes.ok:
-        json_data = response.json()
-        logging.debug(json_data["main"])
-        #json_data["main"]["temp"]
-        #json_data["weather"][0]["description"]
-        return json_data
-    return False
-
 def load_sensor(data):
     pass
 
@@ -101,16 +77,15 @@ def main():
     global TERMINATE
 
     debug = False
-    openweather = False
-    openweather_frequency = 2 #Effectively update the data every 2 cycles
-    openweather_current_temp = 0
-    openweather_current_weather = "None"
 
     signal.signal(signal.SIGTERM, term_handler)
 
     configuration = configparser.ConfigParser()
     configuration.read(CONFIGURATION_FILE)
     frequency = int(configuration['COLLECTOR']['frequency'])
+
+    FORMAT = '%(asctime)s - %(name)s - %(levelname)s - %(message)s'
+    logging.basicConfig(filename='collector.log', format=FORMAT, level=logging.DEBUG)
 
     try:
         opts, args = getopt.getopt(sys.argv[1:], "hdf:", ["help", "debug", "openweather"])
@@ -127,18 +102,20 @@ def main():
         elif o in "-f":
             frequency = int(a)
         elif o in ("--openweather"):
-            openweathermap_key = configuration['COLLECTOR']['openweathermap-key']
-            openweathermap_name = configuration['COLLECTOR']['openweathermap-name']
-            openweathermap_city_id = configuration['COLLECTOR']['openweathermap-city-id']
-            openweather = True
+            import openweather
+            try:
+                ow = Openweather(
+                    configuration['COLLECTOR']['openweathermap-key'],
+                    configuration['COLLECTOR']['openweathermap-name'],
+                    configuration['COLLECTOR']['openweathermap-city-id'])
+                openweather_enabled = True
+            except:
+                logging.warn("OpenWeather has been disabled :(...")
+                openweather_enabled = False
         else:
             assert False, "Unhandled option"
 
-    FORMAT = '%(asctime)s - %(name)s - %(levelname)s - %(message)s'
-
-    if debug:
-        logging.basicConfig(filename='collector.log', format=FORMAT, level=logging.DEBUG)
-    else:
+    if not debug:
         logging.basicConfig(filename='collector.log', format=FORMAT, level=logging.INFO)
 
     logging.info("Loading " + DEVICES_FILE)
@@ -167,20 +144,6 @@ def main():
             logging.warn("Ping to device " + dev.get_name() + " failed, so the device has been disabled.")
             dev.disable()
 
-    #Colleccting weather for Dublin from OpenWeatherMap
-    if openweather == True:
-        logging.debug("Retrieving first weather metric from OpenWeatherMap API")
-        weather = openweather_get_weather(openweathermap_city_id, openweathermap_key)
-        if weather == False:
-            openweather_current_temp = "100"
-            openweather_current_weather = "No data :("
-        else:
-            openweather_current_temp = weather["main"]["temp"]
-            openweather_current_weather = weather["weather"][0]["description"]
-            if len(openweather_current_weather) > 16:
-                openweather_current_weather = openweather_current_weather[:16]
-            #I should keep an eye on the length of "description" since this will go to the 16x2 LCD display
-
     starttime = time.time()
 
     while not TERMINATE:
@@ -193,24 +156,14 @@ def main():
                 logging.debug("Sensor read: " + str(measure))
                 store_collected_metric(configuration, timestamp, dev.get_name(), dev.get_sensor_name(sensor), measure)
 
-                if openweather and openweather_frequency == 0:
+                if openweather_enabled:
                     sensor = 2
-                    logging.debug("Updating data from OpenWeatherMap.")
-                    openweather_frequency = 2
-                    weather = openweather_get_weather(openweathermap_city_id, openweathermap_key)
-                    if weather == False:
-                        openweather_current_temp = "100"
-                        openweather_current_weather = "No data :("
-                    else:
-                        openweather_current_temp = weather["main"]["temp"]
-                        openweather_current_weather = weather["weather"][0]["description"]
-                        if len(openweather_current_weather) > 16:
-                            openweather_current_weather = openweather_current_weather[:16]
-                        #I should keep an eye on the length of "description" since this will go to the 16x2 LCD display
-                        dev.write_sensor(sensor, (openweather_current_temp, openweather_current_weather))
-                else:
-                    openweather_frequency = openweather_frequency - 1
-
+                    logging.debug("Retrieving data from OpenWeatherMap.")
+                    weather = ow.get_weather()
+                    temperature = ow.get_temperature()
+                    if len(weather) > 16:#I should keep an eye on the length of "description" since this will go to the 16x2 LCD display
+                            weather = weather[:16]
+                    dev.write_sensor(sensor, (temperature, weather))
             else:
                 logging.warn("Skipping " + dev.get_name() + " because is disabled.")
         back_to_sleep_for = (frequency - ((time.time() - starttime)%frequency))
