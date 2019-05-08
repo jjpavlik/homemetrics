@@ -9,6 +9,7 @@ import json
 import re
 import configparser
 import signal
+from botocore.exceptions import ClientError
 
 CONFIGURATION_FILE = "general.conf"
 TERMINATE = False
@@ -33,7 +34,13 @@ def push_metric(message, configuration):
     counts = 1
     metric_data = [{"MetricName":metric_name, "Timestamp":timestamp, "Value":value, "Dimensions":dimensions}]
 
-    response = client.put_metric_data(Namespace = namespace, MetricData = metric_data)
+    try:
+        response = client.put_metric_data(Namespace = namespace, MetricData = metric_data)
+    except ClientError as e:
+        logging.error("Some ClientError: " + e.response['Error']['Code'])
+    except Exception as e:
+        logging.error(e)
+        
     logging.debug(response)
 
     return True
@@ -44,7 +51,13 @@ def get_available_messages(parameters):
     """
     client = boto3.client("sqs")
     url = parameters['QUEUE']['url']
-    messages = client.receive_message(QueueUrl = url, MaxNumberOfMessages = 10, WaitTimeSeconds = 2)
+    messages = {}
+    try:
+        messages = client.receive_message(QueueUrl = url, MaxNumberOfMessages = 10, WaitTimeSeconds = 2)
+    except ClientError as e:
+        logging.error("Some ClientError: " + e.response['Error']['Code'])
+    except Exception as e:
+        logging.error(e)
     return messages
 
 def acknowledge_message(message, parameters):
@@ -54,7 +67,12 @@ def acknowledge_message(message, parameters):
     client = boto3.client("sqs")
     url = parameters['QUEUE']['url']
 
-    client.delete_message(QueueUrl = url, ReceiptHandle = message['ReceiptHandle'])
+    try:
+        client.delete_message(QueueUrl = url, ReceiptHandle = message['ReceiptHandle'])
+    except ClientError as e:
+        logging.error("Some ClientError: " + e.response['Error']['Code'])
+    except Exception as e:
+        logging.error(e)
 
 def is_message_valid(message):
     """

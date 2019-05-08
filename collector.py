@@ -8,6 +8,7 @@ import time
 import fcntl
 import configparser
 import boto3
+from botocore.exceptions import ClientError
 import signal
 import requests
 
@@ -56,7 +57,14 @@ def __push_message(client, url, message):
     """
     Function that actually pushes the message to the queue.
     """
-    client.send_message(QueueUrl = url, MessageBody = message)
+    try:
+        client.send_message(QueueUrl = url, MessageBody = message)
+    except ClientError as e:
+        logging.error("Some ClientError: " + e.response['Error']['Code'])
+        return False
+    except Exception as e:
+        logging.error(e)
+        return False
     return True
 
 def term_handler(signum, frame):
