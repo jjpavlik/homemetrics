@@ -38,11 +38,12 @@ def push_metric(message, configuration):
         response = client.put_metric_data(Namespace = namespace, MetricData = metric_data)
     except ClientError as e:
         logging.error("Some ClientError: " + e.response['Error']['Code'])
+        return False
     except Exception as e:
         logging.error(e)
-        
-    logging.debug(response)
+        return False
 
+    logging.debug(response)
     return True
 
 def get_available_messages(parameters):
@@ -144,7 +145,6 @@ def main():
                     if res:
                         acknowledge_message(i, configuration)
                     else:
-                        # Watch out... push_metric always returns True now xD
                         logging.warn("For some reason message " + str(i) + " wasn't pushed correctly to CW.")
         back_to_sleep_for = (frequency - ((time.time() - starttime)%frequency))
         logging.debug("Sleeping for " + str(back_to_sleep_for))
