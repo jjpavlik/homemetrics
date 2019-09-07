@@ -33,6 +33,29 @@ def load_device(dev):
     logging.debug("Loading device "+str(device))
     return aux
 
+def update_temperature_table(room, temperature, timestamp):
+    """
+    Function in charge of updating the temperature item on the dynamodb table.
+    This is later on read by Lambda as part of an Alexa skill for example.
+    Maybe this should go in pusher.py... but in fairness pusher.py could be
+    processing data out of order (due to SQS) and since I only want the most
+    recent temperature available I push it directly from here.
+    """
+    client = boto3.client("dynamodb")
+
+    try:
+        table = client.Table("temperatures")
+        table.update_item(
+            Key={'room':room},
+            UpdateExpression='SET temperature=:val1, timestamp=:val2',
+            ExpressionAttibuteValues={':val1':temperature, ':val2':timestamp}
+            )
+    except Exception as e:
+        logging.error(e)
+        return False
+    logging.debug("Stored temperature "+str(temperature)+" for room "+str(room)+" timestamp "+str(timestamp))
+    return True
+
 def store_collected_metric(parameters, timestamp, device, sensor, value):
     """
     Pushes the metric to a queue, so then they can be pulled from there.
@@ -163,6 +186,7 @@ def main():
                 measure = dev.read_sensor(sensor)
                 logging.debug("Sensor read: " + str(measure))
                 store_collected_metric(configuration, timestamp, dev.get_name(), dev.get_sensor_name(sensor), measure)
+                update_temperature_table("livingroom", measure, timestamp)
 
                 if openweather_enabled:
                     sensor = 2
