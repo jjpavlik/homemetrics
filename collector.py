@@ -41,7 +41,7 @@ def update_temperature_table(room, temperature, timestamp):
     processing data out of order (due to SQS) and since I only want the most
     recent temperature available I push it directly from here.
     """
-    client = boto3.client("dynamodb")
+    client = boto3.resource("dynamodb")
 
     try:
         table = client.Table("temperatures")
