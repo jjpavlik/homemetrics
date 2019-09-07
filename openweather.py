@@ -17,7 +17,7 @@ class Openweather():
         self.city_id = city_id
         self.temperature = 100
         self.weather = "None"
-        if (self._get_weather())
+        if (self._get_weather()):
             self.last_measure = time.time()
         else:
             raise Exception("Couldn't get the first measure from OpenWeather for some reason... aborting")
