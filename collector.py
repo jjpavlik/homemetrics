@@ -48,7 +48,7 @@ def update_temperature_table(room, temperature, timestamp):
         table.update_item(
             Key={'room':room},
             UpdateExpression='SET temperature=:val1, timestamp=:val2',
-            ExpressionAttibuteValues={':val1':temperature, ':val2':timestamp}
+            ExpressionAttributeValues={':val1':temperature, ':val2':timestamp}
             )
     except Exception as e:
         logging.error(e)
