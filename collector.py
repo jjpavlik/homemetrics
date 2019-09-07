@@ -47,7 +47,7 @@ def update_temperature_table(room, temperature, timestamp):
         table = client.Table("temperatures")
         table.update_item(
             Key={'room':room},
-            UpdateExpression='SET temperature=:val1, sensor-timestamp=:val2',
+            UpdateExpression='SET temperature=:val1, sensorTimestamp=:val2',
             ExpressionAttributeValues={':val1':temperature, ':val2':timestamp}
             )
     except Exception as e:
