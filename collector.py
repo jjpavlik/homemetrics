@@ -135,7 +135,7 @@ def main():
         elif o in ("--openweather"):
             import openweather
             try:
-                ow = Openweather(
+                ow = openweather.Openweather(
                     configuration['COLLECTOR']['openweathermap-key'],
                     configuration['COLLECTOR']['openweathermap-name'],
                     configuration['COLLECTOR']['openweathermap-city-id'])
