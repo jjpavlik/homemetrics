@@ -146,8 +146,10 @@ def main():
         else:
             assert False, "Unhandled option"
 
-    if not debug:
-        logging.basicConfig(filename='collector.log', format=FORMAT, level=logging.INFO)
+    if debug:
+        logging.basicConfig(filename="collector.log", format=FORMAT, level=logging.DEBUG)
+    else:
+        logging.basicConfig(filename="collector.log", format=FORMAT, level=logging.INFO)
 
     logging.info("Loading " + DEVICES_FILE)
     with open(DEVICES_FILE) as f:
