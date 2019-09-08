@@ -115,9 +115,6 @@ def main():
     configuration.read(CONFIGURATION_FILE)
     frequency = int(configuration['COLLECTOR']['frequency'])
 
-    FORMAT = '%(asctime)s - %(name)s - %(levelname)s - %(message)s'
-    logging.basicConfig(filename='collector.log', format=FORMAT, level=logging.DEBUG)
-
     try:
         opts, args = getopt.getopt(sys.argv[1:], "hdf:", ["help", "debug", "openweather"])
     except getopt.GetoptError as err:
@@ -145,6 +142,8 @@ def main():
                 openweather_enabled = False
         else:
             assert False, "Unhandled option"
+
+    FORMAT = '%(asctime)s - %(name)s - %(levelname)s - %(message)s'
 
     if debug:
         logging.basicConfig(filename="collector.log", format=FORMAT, level=logging.DEBUG)
