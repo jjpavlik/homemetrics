@@ -140,8 +140,8 @@ def main():
                     configuration['COLLECTOR']['openweathermap-name'],
                     configuration['COLLECTOR']['openweathermap-city-id'])
                 openweather_enabled = True
-            except:
-                logging.warn("OpenWeather has been disabled :(...")
+            except as e:
+                logging.warn("OpenWeather has been disabled :(... due to " + str(e))
                 openweather_enabled = False
         else:
             assert False, "Unhandled option"
