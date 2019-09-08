@@ -29,7 +29,7 @@ class Openweather():
         if (time.time() - self.last_measure) > retention_threshold:
             logging.debug("Retrieving new data")
             try:
-                _get_weather(self)
+                self._get_weather()
             except Exceprion as e:
                 logging.warn("Couldn't update temperature and weather from OpenWeather. Maybe next time? Reason: " + str(e))
         else:
@@ -43,7 +43,7 @@ class Openweather():
         if (time.time() - self.last_measure) > retention_threshold:
             logging.debug("Retrieving new data")
             try:
-                _get_weather(self)
+                self._get_weather()
             except Exception as e:
                 logging.warn("Couldn't update temperature and weather from OpenWeather. Maybe next time? Reason: " + str(e))
         else:
