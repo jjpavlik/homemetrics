@@ -150,10 +150,12 @@ def main():
 
         if path.exists("debug"):
             if not debug: #If debug file was just created, enable DEBUG
+                debug = True
                 logging.basicConfig(level=logging.DEBUG)
                 logging.info("DEBUG logging ENABLED")
         else:
             if debug: #If debug file was just deleted disable it (regardless of --debug start)
+                debug = False
                 logging.basicConfig(level=logging.INFO)
                 logging.info("DEBUG logging DISABLED (back to INFO)")
 
