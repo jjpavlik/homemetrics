@@ -8,6 +8,7 @@ import time
 import fcntl
 import configparser
 import boto3
+from botocore.exceptions import ClientError
 import signal
 import requests
 
@@ -31,6 +32,29 @@ def load_device(dev):
     aux = device.Arduino(device = device_type, name = device_name, access = device_access, interface = device_interface, location = device_location)
     logging.debug("Loading device "+str(device))
     return aux
+
+def update_temperature_table(room, temperature, timestamp):
+    """
+    Function in charge of updating the temperature item on the dynamodb table.
+    This is later on read by Lambda as part of an Alexa skill for example.
+    Maybe this should go in pusher.py... but in fairness pusher.py could be
+    processing data out of order (due to SQS) and since I only want the most
+    recent temperature available I push it directly from here.
+    """
+    client = boto3.resource("dynamodb")
+
+    try:
+        table = client.Table("temperatures")
+        table.update_item(
+            Key={'room':room},
+            UpdateExpression='SET temperature=:val1, sensorTimestamp=:val2',
+            ExpressionAttributeValues={':val1':temperature, ':val2':timestamp}
+            )
+    except Exception as e:
+        logging.error(e)
+        return False
+    logging.debug("Stored temperature "+str(temperature)+" for room "+str(room)+" timestamp "+str(timestamp))
+    return True
 
 def store_collected_metric(parameters, timestamp, device, sensor, value):
     """
@@ -56,7 +80,14 @@ def __push_message(client, url, message):
     """
     Function that actually pushes the message to the queue.
     """
-    client.send_message(QueueUrl = url, MessageBody = message)
+    try:
+        client.send_message(QueueUrl = url, MessageBody = message)
+    except ClientError as e:
+        logging.error("Some ClientError: " + e.response['Error']['Code'])
+        return False
+    except Exception as e:
+        logging.error(e)
+        return False
     return True
 
 def term_handler(signum, frame):
@@ -85,7 +116,11 @@ def main():
     frequency = int(configuration['COLLECTOR']['frequency'])
 
     FORMAT = '%(asctime)s - %(name)s - %(levelname)s - %(message)s'
-    logging.basicConfig(filename='collector.log', format=FORMAT, level=logging.DEBUG)
+
+    if debug:
+        logging.basicConfig(filename="collector.log", format=FORMAT, level=logging.DEBUG)
+    else:
+        logging.basicConfig(filename="collector.log", format=FORMAT, level=logging.INFO)
 
     try:
         opts, args = getopt.getopt(sys.argv[1:], "hdf:", ["help", "debug", "openweather"])
@@ -104,19 +139,16 @@ def main():
         elif o in ("--openweather"):
             import openweather
             try:
-                ow = Openweather(
+                ow = openweather.Openweather(
                     configuration['COLLECTOR']['openweathermap-key'],
                     configuration['COLLECTOR']['openweathermap-name'],
                     configuration['COLLECTOR']['openweathermap-city-id'])
                 openweather_enabled = True
-            except:
-                logging.warn("OpenWeather has been disabled :(...")
+            except Exception as e:
+                logging.warn("OpenWeather has been disabled :(... due to " + str(e))
                 openweather_enabled = False
         else:
             assert False, "Unhandled option"
-
-    if not debug:
-        logging.basicConfig(filename='collector.log', format=FORMAT, level=logging.INFO)
 
     logging.info("Loading " + DEVICES_FILE)
     with open(DEVICES_FILE) as f:
@@ -155,6 +187,7 @@ def main():
                 measure = dev.read_sensor(sensor)
                 logging.debug("Sensor read: " + str(measure))
                 store_collected_metric(configuration, timestamp, dev.get_name(), dev.get_sensor_name(sensor), measure)
+                update_temperature_table("livingroom", measure, timestamp)
 
                 if openweather_enabled:
                     sensor = 2

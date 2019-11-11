@@ -17,7 +17,7 @@ class Openweather():
         self.city_id = city_id
         self.temperature = 100
         self.weather = "None"
-        if (self._get_weather())
+        if (self._get_weather()):
             self.last_measure = time.time()
         else:
             raise Exception("Couldn't get the first measure from OpenWeather for some reason... aborting")
@@ -29,9 +29,9 @@ class Openweather():
         if (time.time() - self.last_measure) > retention_threshold:
             logging.debug("Retrieving new data")
             try:
-                _get_weather(self)
-            except:
-                logging.warn("Couldn't update temperature and weather from OpenWeather. Maybe next time?")
+                self._get_weather()
+            except Exceprion as e:
+                logging.warn("Couldn't update temperature and weather from OpenWeather. Maybe next time? Reason: " + str(e))
         else:
             logging.debug("Returning cached temperature")
         return self.temperature
@@ -43,9 +43,9 @@ class Openweather():
         if (time.time() - self.last_measure) > retention_threshold:
             logging.debug("Retrieving new data")
             try:
-                _get_weather(self)
-            except:
-                logging.warn("Couldn't update temperature and weather from OpenWeather. Maybe next time?")
+                self._get_weather()
+            except Exception as e:
+                logging.warn("Couldn't update temperature and weather from OpenWeather. Maybe next time? Reason: " + str(e))
         else:
             logging.debug("Returning cached weather")
         return self.weather
