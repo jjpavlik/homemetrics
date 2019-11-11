@@ -11,6 +11,7 @@ import boto3
 from botocore.exceptions import ClientError
 import signal
 import requests
+from os import path
 
 DEVICES = []
 SENSORS = []
@@ -199,6 +200,16 @@ def main():
                     dev.write_sensor(sensor, (temperature, weather))
             else:
                 logging.warn("Skipping " + dev.get_name() + " because is disabled.")
+
+        if path.exists("debug"):
+            if not debug: #If debug file was just created, enable DEBUG
+                logging.basicConfig(level=logging.DEBUG)
+                logging.info("DEBUG logging ENABLED")
+        else:
+            if debug: #If debug file was just deleted disable it (regardless of --debug start)
+                logging.basicConfig(level=logging.INFO)
+                logging.info("DEBUG logging DISABLED (back to INFO)")
+
         back_to_sleep_for = (frequency - ((time.time() - starttime)%frequency))
         logging.debug("Sleeping for " + str(back_to_sleep_for))
         time.sleep(back_to_sleep_for)
