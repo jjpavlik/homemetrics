@@ -192,9 +192,10 @@ def main():
                 logging.debug("Sensor read: " + str(measure))
                 store_collected_metric(configuration, timestamp, dev.get_name(), dev.get_sensor_name(sensor), measure)
                 update_temperature_table("livingroom", measure, timestamp)
-
-                if last_measure != float(measure):
-                    last_measure = float(measure)
+                measure = float(measure)
+                if last_measure != measure:
+                    logging.debug("New measure " + str(measure) + " for Living room, so pushing it to LCD.")
+                    last_measure = measure
                     dev.write_sensor(sensor, (measure, "Living Room", 2))
 
                 if openweather_enabled:
