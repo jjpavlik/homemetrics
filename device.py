@@ -110,7 +110,7 @@ class Arduino(Device):
             for i in aux:
                 message.append(ord(i))
             message.append(ord('\n'))
-            message.append(slot.to_bytes(1, byteorder="little"))
+            message.append(ord(str(slot)) - 48)#Terrible workaround
         else:
             message.append(5) #B4
 
