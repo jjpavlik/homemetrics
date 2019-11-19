@@ -77,8 +77,9 @@ example update the text showed on an LCD display.
 
 #### WRITE MESSAGE (>5 bytes):
 ```
-0001 0000 - PACKET_ID - 0001 0010 - 0000 0000 - 0000 0101 - hello world\ngood
+0001 0000 - PACKET_ID - 0001 0010 - 0000 0000 - 0000 0101 - hello world\ngood\nSLOT
 ```
+SLOT is a one byte number that defines the LCD slot the text will go to.
 
 #### RESPONSE PACKET (5 bytes):
 ```

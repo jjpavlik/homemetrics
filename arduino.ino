@@ -6,6 +6,18 @@
 // Data wire is plugged into pin 2 on the Arduino
 #define ONE_WIRE_BUS 2
 
+#define LOOP_DELAY 50
+// Number of rotating pairs for the LCD. Pairs are 32 bytes size.
+#define LCD_PAIRS 8
+#define LCD_ROTATION_FACTOR 40
+#define LCD_PAIRS_SIZE 32*LCD_PAIRS
+char available_lcd_pairs[LCD_PAIRS_SIZE];
+available_lcd_pairs[0] = "-Just Started-";
+available_lcd_pairs[16] = "No Data Avail.";
+byte current_pair = 0;//The one present on the LCD at the moment.
+byte used_pairs = B00000001;//Bitmap of pairs in use, remember pair[0] is used by default
+byte rotate_lcd = LCD_ROTATION_FACTOR * LOOP_DELAY;//Considering the delay in loop() is 50ms, this results in ~2000ms between LCD rotation
+
 // Setup a oneWire instance to communicate with any OneWire devices
 // (not just Maxim/Dallas temperature ICs)
 OneWire oneWire(ONE_WIRE_BUS);
@@ -17,8 +29,6 @@ DallasTemperature sensors(&oneWire);
 // PINs
 const int rs = 12, en = 8, d4 = 6, d5 = 5, d6 = 4, d7 = 3;
 LiquidCrystal lcd(rs, en, d4, d5, d6, d7);
-char row0[16] = "-Just Started-";
-char row1[16] = "No Data Avail.";
 
 // Reception buffer
 #define BUFFER_SIZE 256
@@ -71,11 +81,7 @@ void setup(void)
 
   // Start lcd
   lcd.begin(16, 2);
-  // Set cursor position to write
-  lcd.setCursor(1,0);
-  lcd.print(row0);
-  lcd.setCursor(0,1);
-  lcd.print(row1);
+  update_screen()
 }
 
 // Pull all the available data from the UART buffer
@@ -216,16 +222,18 @@ boolean send_sensor_read(byte packet_protocol_version, byte packet_id, byte sens
 }
 
 // Pulls the data from receive_buffer and places it in row0 and row1
-// Meh... all this memory movement might not be necessary, but it is a start.
+// Meh... all this memory movement might not be necessary, but it is a start (maybe could retrieve slot number earlier and then copy the strings directly to the LCD_PAIRS array).
 // TODO: maybe there should be some boundary checks here, to make sure we don't
 // go beyond row0 and row1...
 boolean read_screen_data(byte size)
 {
   // Data should start in B5 in receive_buffer. Two strings should come, separated by '\n'
-  byte *read;
+  byte *read, *aux_row0, *aux_row1;
   byte ctr = 0;
   byte boundary = size - 5;// Used to make sure we don't read beyond the what we received.
   byte rboundary = 16;// To make sure I don't go beyond row0 or row1
+  byte slot;
+  byte position = B00000001;
 
   read = &receive_buffer[5];
 
@@ -243,6 +251,8 @@ boolean read_screen_data(byte size)
     rboundary--;
   }
 
+  row0[15]='\0';//No matter what happens I close the string at the edge of the array
+
   boundary = boundary - ctr;
 
   read = read + ctr + 1;
@@ -252,7 +262,7 @@ boolean read_screen_data(byte size)
 
   while(rboundary > 0)
   {
-    if(boundary > 0)
+    if(*(read + ctr) != '\n')
     {//Copy the content from the receive_buffer
       row1[ctr] = *(read + ctr);
       ctr++;
@@ -264,19 +274,44 @@ boolean read_screen_data(byte size)
     }
     rboundary--;
   }
+
+  row1[15] = '\0';
+
+  slot = *(read + ctr +1);
+
+  if(slot >= LCD_PAIRS)
+  {// This should never happen, Arduino and Rapsberry should exchange number of available slots to prevent this
+    return false;
+  }
+
+  aux_row0 = &available_lcd_pairs[16*slot];
+  aux_row1 = &available_lcd_pairs[16*slot + 16];
+
+  rboundary = 16;
+  while(rboundary > 0)
+  {
+    aux_row0[rboundary-1] = row0[rboundary-1];
+    aux_row1[rboundary-1] = row1[rboundary-1];
+    rboundary--;
+  }
+
+  //Updating the bitmap, first getting the position and then updating the bitmap
+  position = position << slot;
+  used_pairs = used_pairs | position;
+
   return true;
 }
 
 // This function updates the text on the LCD according to what the Pi sent.
 // First needs to pull out the two strings one for each row :(
-boolean update_screen1()
+boolean update_screen()
 {
   // Set cursor position to write
   lcd.clear();
   lcd.setCursor(0,0);
-  lcd.print(row0);
+  lcd.print(available_lcd_pairs[0]);
   lcd.setCursor(0,1);
-  lcd.print(row1);
+  lcd.print(available_lcd_pairs[16]);
 
   return true;
 }
@@ -316,7 +351,7 @@ boolean process_packet()
         break;
       case WRITE | SCREEN1:
         read_screen_data(packet_size);
-        update_screen1();
+//        update_screen();
         send_write_response(packet_protocol_version, packet_id);
         break;
       default:
@@ -331,8 +366,45 @@ boolean process_packet()
   return true;
 }
 
+// Just moving the LCD displayed data to the next available thing to display.
+// A few things to keep in mind, even though there's LCD_PAIRS availabe, some
+// of them may not be in use, so you have to be careful there. And you have to
+// skig pair[0] after pair[1] is populated.
+// This function is called roughly LCD_ROTATION_FACTOR * LOOP_DELAY ms to rotate
+// the LCD display content.
+void rotate_lcd_now()
+{
+  byte position = B00000001;
+  if(used_pairs == 1)
+  {//Nothing to do, we are still with default pair, this should be unlikely to extend in time.
+    return;
+  }
+
+  // So now, try the moving current_pair forward and check if that pair is enabled in the bitmap.
+  current_pair++;
+  position<<current_pair;
+
+  if((position & used_pairs) == 0)
+  {//Example position=00000100 (for position 2), used_pairs=00000011 and current_pair=1
+    current_pair=0;//Resesting it for now, but this should go to at least 1 to prevent showing the default data in pair[0]
+  }
+
+  lcd.clear();
+  lcd.setCursor(0,0);
+  lcd.print(available_lcd_pairs[16*(current_pair+1)]);
+  lcd.setCursor(0,1);
+  lcd.print(available_lcd_pairs[16*(current_pair+1)+16]);
+
+  return;
+}
+
 void loop(void)
 {
+  if(rotate_lcd == 0)
+  {
+    rotate_lcd_now();
+    rotate_lcd = LCD_ROTATION_FACTOR * LOOP_DELAY;
+  }
   if(packet_ready)
   {
     process_packet();
@@ -354,7 +426,8 @@ void loop(void)
     }
     else
     {
-      delay(50);
+      delay(LOOP_DELAY);
+      rotate_lcd--;
     }
   }
 }

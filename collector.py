@@ -196,7 +196,7 @@ def main():
                     temperature = ow.get_temperature()
                     if len(weather) > 16:#I should keep an eye on the length of "description" since this will go to the 16x2 LCD display
                             weather = weather[:16]
-                    dev.write_sensor(sensor, (temperature, weather))
+                    dev.write_sensor(sensor, (temperature, weather, 1))
             else:
                 logging.warn("Skipping " + dev.get_name() + " because is disabled.")
         back_to_sleep_for = (frequency - ((time.time() - starttime)%frequency))
