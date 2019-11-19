@@ -196,6 +196,7 @@ def main():
                 if last_measure != measure:
                     logging.debug("New measure " + str(measure) + " for Living room, so pushing it to LCD.")
                     last_measure = measure
+                    sensor = 2 #Hardcoding screen1 sensor :)
                     dev.write_sensor(sensor, (measure, "Living Room", 2))
 
                 if openweather_enabled:
