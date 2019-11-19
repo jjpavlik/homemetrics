@@ -95,7 +95,7 @@ class Arduino(Device):
         message.append(sensor_id)			#B3 is actually the data format, so this is just a placeholder here.
 
         logging.debug("About to write to sensor " + self.available_sensors[sensor_id]['name'] + " type " + str(self.available_sensors[sensor_id]['type']))
-
+        logging.debug("Data to be written: " + str(data))
         if self.available_sensors[sensor_id]['type'] == 32: #Sensor is actually a LCD display
             temp = str(data[0])
             description = data[1]
