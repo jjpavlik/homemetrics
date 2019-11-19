@@ -108,6 +108,7 @@ def main():
     global TERMINATE
 
     debug = False
+    owo = False
 
     signal.signal(signal.SIGTERM, term_handler)
 
@@ -116,11 +117,6 @@ def main():
     frequency = int(configuration['COLLECTOR']['frequency'])
 
     FORMAT = '%(asctime)s - %(name)s - %(levelname)s - %(message)s'
-
-    if debug:
-        logging.basicConfig(filename="collector.log", format=FORMAT, level=logging.DEBUG)
-    else:
-        logging.basicConfig(filename="collector.log", format=FORMAT, level=logging.INFO)
 
     try:
         opts, args = getopt.getopt(sys.argv[1:], "hdf:", ["help", "debug", "openweather"])
@@ -138,17 +134,25 @@ def main():
             frequency = int(a)
         elif o in ("--openweather"):
             import openweather
-            try:
-                ow = openweather.Openweather(
-                    configuration['COLLECTOR']['openweathermap-key'],
-                    configuration['COLLECTOR']['openweathermap-name'],
-                    configuration['COLLECTOR']['openweathermap-city-id'])
-                openweather_enabled = True
-            except Exception as e:
-                logging.warn("OpenWeather has been disabled :(... due to " + str(e))
-                openweather_enabled = False
+            owo = True
         else:
             assert False, "Unhandled option"
+
+    if debug:
+        logging.basicConfig(filename="collector.log", format=FORMAT, level=logging.DEBUG)
+    else:
+        logging.basicConfig(filename="collector.log", format=FORMAT, level=logging.INFO)
+
+    if owo:
+        try:
+            ow = openweather.Openweather(
+                configuration['COLLECTOR']['openweathermap-key'],
+                configuration['COLLECTOR']['openweathermap-name'],
+                configuration['COLLECTOR']['openweathermap-city-id'])
+            openweather_enabled = True
+        except Exception as e:
+            logging.warn("OpenWeather has been disabled :(... due to " + str(e))
+            openweather_enabled = False
 
     logging.info("Loading " + DEVICES_FILE)
     with open(DEVICES_FILE) as f:
