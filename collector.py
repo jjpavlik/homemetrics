@@ -181,7 +181,7 @@ def main():
             dev.disable()
 
     starttime = time.time()
-
+    last_measure = 0.0
     while not TERMINATE:
         timestamp = str(datetime.datetime.now())
         for dev in DEVICES:
@@ -192,6 +192,10 @@ def main():
                 logging.debug("Sensor read: " + str(measure))
                 store_collected_metric(configuration, timestamp, dev.get_name(), dev.get_sensor_name(sensor), measure)
                 update_temperature_table("livingroom", measure, timestamp)
+
+                if last_measure != float(measure):
+                    last_measure = float(measure)
+                    dev.write_sensor(sensor, (measure, "Living Room", 2))
 
                 if openweather_enabled:
                     sensor = 2
