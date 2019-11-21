@@ -286,7 +286,7 @@ boolean read_screen_data(byte size)
     return false;
   }
 
-  available_lcd_pairs[16*slot + 16 + 15]; = '\0';
+  available_lcd_pairs[16*slot + 16 + 15] = '\0';
 
   //Updating the bitmap, first getting the position and then updating the bitmap
   position = position << slot;
@@ -395,6 +395,8 @@ void loop(void)
 {
   if(rotate_lcd == 0)
   {
+    lcd.clear();
+    delay(100);
     rotate_lcd_now();
     rotate_lcd = LCD_ROTATION_FACTOR * LOOP_DELAY;
   }
