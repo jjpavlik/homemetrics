@@ -422,7 +422,7 @@ void loop(void)
     else
     {
       delay(LOOP_DELAY);
-      rotate_lcd--;
+      rotate_lcd = rotate_lcd - LOOP_DELAY;
     }
   }
 }
