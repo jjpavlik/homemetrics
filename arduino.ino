@@ -236,6 +236,12 @@ boolean read_screen_data(byte size)
   byte position = B00000001;
 
   read = &receive_buffer[5];
+  slot = receive_buffer[size - 1]; //Don't really need to copy it but wth, makes it easier to read.
+
+  if(slot >= LCD_PAIRS)
+  {// This should never happen, Arduino and Rapsberry should exchange number of available slots to prevent this
+    return false;//This should result in an error back to the Rasp.
+  }
 
   while(rboundary > 0)
   {
@@ -266,7 +272,6 @@ boolean read_screen_data(byte size)
     {//Copy the content from the receive_buffer
       row1[ctr] = *(read + ctr);
       ctr++;
-      boundary--;
     }
     else
     {//Fill up the rest with spaces to override any previously stored characters
@@ -275,24 +280,23 @@ boolean read_screen_data(byte size)
     rboundary--;
   }
 
-  row1[15] = '\0';
-
-  slot = *(read + ctr +1);
-
-  if(slot >= LCD_PAIRS)
-  {// This should never happen, Arduino and Rapsberry should exchange number of available slots to prevent this
+  boundary = boundary - ctr;
+  if(boundary != 0)
+  {// This means we have either read beyond the packet or there's left to read.
     return false;
   }
+
+  row1[15] = '\0';
 
   aux_row0 = &available_lcd_pairs[16*slot];
   aux_row1 = &available_lcd_pairs[16*slot + 16];
 
-  rboundary = 16;
-  while(rboundary > 0)
+  ctr = 0;
+  while(ctr < 16)
   {
-    aux_row0[rboundary-1] = row0[rboundary-1];
-    aux_row1[rboundary-1] = row1[rboundary-1];
-    rboundary--;
+    aux_row0[ctr] = row0[ctr];
+    aux_row1[ctr] = row1[ctr];
+    boundary++;
   }
 
   //Updating the bitmap, first getting the position and then updating the bitmap
