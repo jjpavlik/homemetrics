@@ -16,7 +16,7 @@ available_lcd_pairs[0] = "-Just Started-";
 available_lcd_pairs[16] = "No Data Avail.";
 byte current_pair = 0;//The one present on the LCD at the moment.
 byte used_pairs = B00000001;//Bitmap of pairs in use, remember pair[0] is used by default
-byte rotate_lcd = LCD_ROTATION_FACTOR * LOOP_DELAY;//Considering the delay in loop() is 50ms, this results in ~2000ms between LCD rotation
+int rotate_lcd = LCD_ROTATION_FACTOR * LOOP_DELAY;//Considering the delay in loop() is 50ms, this results in ~2000ms between LCD rotation
 
 // Setup a oneWire instance to communicate with any OneWire devices
 // (not just Maxim/Dallas temperature ICs)
@@ -81,7 +81,7 @@ void setup(void)
 
   // Start lcd
   lcd.begin(16, 2);
-  update_screen()
+  update_screen();
 }
 
 // Pull all the available data from the UART buffer
@@ -247,17 +247,17 @@ boolean read_screen_data(byte size)
   {
     if (*(read + ctr) != '\n')
     {//Copy the content from the receive_buffer
-      row0[ctr] = *(read + ctr);
+      available_lcd_pairs[16*slot + ctr] = *(read + ctr);
       ctr++;
     }
     else
     {//Fill up the rest with spaces to override any previously stored characters
-      row0[ctr + rboundary - 1] = 0x20;
+      available_lcd_pairs[16*slot + ctr + rboundary - 1] = 0x20;
     }
     rboundary--;
   }
 
-  row0[15]='\0';//No matter what happens I close the string at the edge of the array
+  available_lcd_pairs[16*slot + 15]='\0';//No matter what happens I close the string at the edge of the array
 
   boundary = boundary - ctr;
 
@@ -270,12 +270,12 @@ boolean read_screen_data(byte size)
   {
     if(*(read + ctr) != '\n')
     {//Copy the content from the receive_buffer
-      row1[ctr] = *(read + ctr);
+      available_lcd_pairs[16*slot + 16 + ctr] = *(read + ctr);
       ctr++;
     }
     else
     {//Fill up the rest with spaces to override any previously stored characters
-      row1[ctr + rboundary - 1] = 0x20;
+      available_lcd_pairs[16*slot + 16 + ctr + rboundary - 1] = 0x20;
     }
     rboundary--;
   }
@@ -286,18 +286,7 @@ boolean read_screen_data(byte size)
     return false;
   }
 
-  row1[15] = '\0';
-
-  aux_row0 = &available_lcd_pairs[16*slot];
-  aux_row1 = &available_lcd_pairs[16*slot + 16];
-
-  ctr = 0;
-  while(ctr < 16)
-  {
-    aux_row0[ctr] = row0[ctr];
-    aux_row1[ctr] = row1[ctr];
-    boundary++;
-  }
+  available_lcd_pairs[16*slot + 16 + 15]; = '\0';
 
   //Updating the bitmap, first getting the position and then updating the bitmap
   position = position << slot;
