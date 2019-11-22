@@ -91,7 +91,7 @@ void setup(void)
   available_lcd_pairs[20] = 'D';
   available_lcd_pairs[21] = 'a';
   available_lcd_pairs[22] = 't';
-  available_lcd_pairs[23] = 'a;
+  available_lcd_pairs[23] = 'a';
   available_lcd_pairs[24] = ' ';
   available_lcd_pairs[25] = 'a';
   available_lcd_pairs[26] = 'v';
@@ -426,12 +426,6 @@ void loop(void)
 {
   if(rotate_lcd == 0)
   {
-    lcd.clear();
-    lcd.setCursor(0,0);
-    lcd.print("WTF");
-    lcd.setCursor(0,1);
-    lcd.print("is this...");
-    delay(100);
     rotate_lcd_now();
     rotate_lcd = LCD_ROTATION_FACTOR * LOOP_DELAY;
   }
