@@ -12,8 +12,38 @@
 #define LCD_ROTATION_FACTOR 40
 #define LCD_PAIRS_SIZE 32*LCD_PAIRS
 char available_lcd_pairs[LCD_PAIRS_SIZE];
-available_lcd_pairs[0] = "-Just Started-";
-available_lcd_pairs[16] = "No Data Avail.";
+available_lcd_pairs[0] = ' ';"
+available_lcd_pairs[1] = '-';
+available_lcd_pairs[2] = 'J';
+available_lcd_pairs[3] = 'u';
+available_lcd_pairs[4] = 's';
+available_lcd_pairs[5] = 't';
+available_lcd_pairs[6] = ' ';
+available_lcd_pairs[7] = 'S';
+available_lcd_pairs[8] = 't';
+available_lcd_pairs[9] = 'a';
+available_lcd_pairs[10] = 'r';
+available_lcd_pairs[11] = 't';
+available_lcd_pairs[12] = 'e';
+available_lcd_pairs[13] = 'd';
+available_lcd_pairs[14] = '-';
+available_lcd_pairs[15] = '\0';
+available_lcd_pairs[16] = ' ';"
+available_lcd_pairs[17] = 'N';
+available_lcd_pairs[18] = 'o';
+available_lcd_pairs[19] = ' ';
+available_lcd_pairs[20] = 'D';
+available_lcd_pairs[21] = 'a';
+available_lcd_pairs[22] = 't';
+available_lcd_pairs[23] = 'a;
+available_lcd_pairs[24] = ' ';
+available_lcd_pairs[25] = 'a';
+available_lcd_pairs[26] = 'v';
+available_lcd_pairs[27] = 't';
+available_lcd_pairs[28] = 'a';
+available_lcd_pairs[29] = 'i';
+available_lcd_pairs[30] = '.';
+available_lcd_pairs[31] = '\0';
 byte current_pair = 0;//The one present on the LCD at the moment.
 byte used_pairs = B00000001;//Bitmap of pairs in use, remember pair[0] is used by default
 int rotate_lcd = LCD_ROTATION_FACTOR * LOOP_DELAY;//Considering the delay in loop() is 50ms, this results in ~2000ms between LCD rotation
@@ -396,6 +426,10 @@ void loop(void)
   if(rotate_lcd == 0)
   {
     lcd.clear();
+    lcd.setCursor(0,0);
+    lcd.print("WTF");
+    lcd.setCursor(0,1);
+    lcd.print("is this...");
     delay(100);
     rotate_lcd_now();
     rotate_lcd = LCD_ROTATION_FACTOR * LOOP_DELAY;
