@@ -15,6 +15,8 @@ char available_lcd_pairs[LCD_PAIRS_SIZE];
 byte current_pair = 0;//The one present on the LCD at the moment.
 byte used_pairs = B00000001;//Bitmap of pairs in use, remember pair[0] is used by default
 int rotate_lcd = LCD_ROTATION_FACTOR * LOOP_DELAY;//Considering the delay in loop() is 50ms, this results in ~2000ms between LCD rotation
+byte return_error_code = 0;
+byte bad_writes = 0;// This should be used to track situations where serial.write() didn't send all the bytes it was supossed to.
 
 // Setup a oneWire instance to communicate with any OneWire devices
 // (not just Maxim/Dallas temperature ICs)
@@ -47,11 +49,16 @@ byte buffer_index;
 #define WRITE 16 // 0001 ____
 #define PING 240 // 1111 0000
 #define CONTROL 224 // 1110 ____
+#define ERROR 192 // 1100 ____
 //Lower nible defines the sensor ...
 #define GET_SENSORS 15 // ____ 1111
 #define TEMP1 0
 #define TEMP2 1
 #define SCREEN1 2
+
+// B3 (ERROR_CODE when B2 is 192)
+#define SLOT_EXCEEDED 1
+#define NOT_ALL_READ 2
 
 // Sensors
 // Higher nibble is type
@@ -83,7 +90,7 @@ void setup(void)
   available_lcd_pairs[12] = 'e';
   available_lcd_pairs[13] = 'd';
   available_lcd_pairs[14] = '-';
-  available_lcd_pairs[15] = '\0';
+  available_lcd_pairs[15] = ' ';
   available_lcd_pairs[16] = ' ';
   available_lcd_pairs[17] = 'N';
   available_lcd_pairs[18] = 'o';
@@ -99,7 +106,7 @@ void setup(void)
   available_lcd_pairs[28] = 'a';
   available_lcd_pairs[29] = 'i';
   available_lcd_pairs[30] = '.';
-  available_lcd_pairs[31] = '\0';
+  available_lcd_pairs[31] = ' ';
 
   // start serial port
   Serial.begin(9600);
@@ -171,6 +178,25 @@ boolean send_write_response(byte packet_protocol_version, byte packet_id)
   response_packet[1] = packet_id;
   response_packet[2] = WRITE;
   response_packet[3] = 0; // Not used for ping, maybe I should rework the bytes order an put size here instead to prevent this useless byte
+  response_packet[4] = 5;
+
+  sent = Serial.write(response_packet, 5);
+  if(sent == 5)
+  {
+    return true;
+  }
+  return false;
+}
+
+// ERROR response packet for an request that resulted in some sort of error.
+boolean send_error_response(byte packet_protocol_version, byte packet_id)
+{
+  byte response_packet[5];
+  int sent;
+  response_packet[0] = packet_protocol_version | RESPONSE;
+  response_packet[1] = packet_id;
+  response_packet[2] = ERROR;
+  response_packet[3] = return_error_code;
   response_packet[4] = 5;
 
   sent = Serial.write(response_packet, 5);
@@ -259,10 +285,10 @@ boolean send_sensor_read(byte packet_protocol_version, byte packet_id, byte sens
 boolean read_screen_data(byte size)
 {
   // Data should start in B5 in receive_buffer. Two strings should come, separated by '\n'
-  byte *read, *aux_row0, *aux_row1;
+  byte *read, *aux_addr;
   byte ctr = 0;
   byte boundary = size - 5;// Used to make sure we don't read beyond the what we received.
-  byte rboundary = 16;// To make sure I don't go beyond row0 or row1
+  byte rboundary = 16;// To make sure I don't go beyond the size of the LCD row
   byte slot;
   byte position = B00000001;
 
@@ -271,24 +297,25 @@ boolean read_screen_data(byte size)
 
   if(slot >= LCD_PAIRS)
   {// This should never happen, Arduino and Rapsberry should exchange number of available slots to prevent this
+    return_error_code = SLOT_EXCEEDED;
     return false;//This should result in an error back to the Rasp.
   }
+
+  aux_addr = &available_lcd_pairs[16*slot];
 
   while(rboundary > 0)
   {
     if (*(read + ctr) != '\n')
     {//Copy the content from the receive_buffer
-      available_lcd_pairs[16*slot + ctr] = *(read + ctr);
+      aux_addr[ctr] = *(read + ctr);
       ctr++;
     }
     else
     {//Fill up the rest with spaces to override any previously stored characters
-      available_lcd_pairs[16*slot + ctr + rboundary - 1] = 0x20;
+      aux_addr[ctr + rboundary - 1] = 0x20;
     }
     rboundary--;
   }
-
-  available_lcd_pairs[16*slot + 15]='\0';//No matter what happens I close the string at the edge of the array
 
   boundary = boundary - ctr;
 
@@ -297,16 +324,18 @@ boolean read_screen_data(byte size)
   ctr = 0;
   rboundary = 16;
 
+  aux_addr = &available_lcd_pairs[16*slot + 16];
+
   while(rboundary > 0)
   {
     if(*(read + ctr) != '\n')
     {//Copy the content from the receive_buffer
-      available_lcd_pairs[16*slot + 16 + ctr] = *(read + ctr);
+      aux_addr[ctr] = *(read + ctr);
       ctr++;
     }
     else
     {//Fill up the rest with spaces to override any previously stored characters
-      available_lcd_pairs[16*slot + 16 + ctr + rboundary - 1] = 0x20;
+      aux_addr[ctr + rboundary - 1] = 0x20;
     }
     rboundary--;
   }
@@ -314,10 +343,9 @@ boolean read_screen_data(byte size)
   boundary = boundary - ctr;
   if(boundary != 0)
   {// This means we have either read beyond the packet or there's left to read.
+    return_error_code = NOT_ALL_READ;
     return false;
   }
-
-  available_lcd_pairs[16*slot + 16 + 15] = '\0';
 
   //Updating the bitmap, first getting the position and then updating the bitmap
   position = position << slot;
@@ -360,6 +388,7 @@ boolean process_packet()
 {
   byte packet_protocol_version, packet_type, packet_id, packet_operation_type, packet_operation_specific, packet_data_format, packet_size;
   boolean is_request = false;
+  boolean result = true;
 
   packet_protocol_version = receive_buffer[0] & 240; //get the higher nible
   packet_type = receive_buffer[0] & 15; //get the lower nible
@@ -389,9 +418,16 @@ boolean process_packet()
         send_sensor_read(packet_protocol_version, packet_id, TEMP1);
         break;
       case WRITE | SCREEN1:
-        read_screen_data(packet_size);
+        result = read_screen_data(packet_size);
 //        update_screen();
-        send_write_response(packet_protocol_version, packet_id);
+        if(result)
+        {
+          send_write_response(packet_protocol_version, packet_id);
+        }
+        else
+        {
+          send_error_response(packet_protocol_version, packet_id);
+        }
         break;
       default:
         send_ping_response(packet_protocol_version, packet_id);
