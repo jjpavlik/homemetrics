@@ -75,6 +75,7 @@ boolean packet_ready;
 
 void setup(void)
 {
+  int aux;
   available_lcd_pairs[0] = ' ';
   available_lcd_pairs[1] = '-';
   available_lcd_pairs[2] = 'J';
@@ -107,6 +108,12 @@ void setup(void)
   available_lcd_pairs[29] = 'i';
   available_lcd_pairs[30] = '.';
   available_lcd_pairs[31] = ' ';
+  aux = 32;
+  while(aux < LCD_PAIRS_SIZE)
+  {
+    available_lcd_pairs[aux] = 'X';
+    aux++;
+  }
 
   // start serial port
   Serial.begin(9600);
