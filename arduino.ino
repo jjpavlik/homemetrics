@@ -19,6 +19,7 @@ byte used_pairs = B00000001;//Bitmap of pairs in use, remember pair[0] is used b
 int rotate_lcd = LCD_ROTATION_FACTOR * LOOP_DELAY;//Considering the delay in loop() is 50ms, this results in ~2000ms between LCD rotation
 byte return_error_code = 0;
 byte bad_writes = 0;// This should be used to track situations where serial.write() didn't send all the bytes it was supossed to.
+boolean initialized = false;
 
 // Setup a oneWire instance to communicate with any OneWire devices
 // (not just Maxim/Dallas temperature ICs)
@@ -361,7 +362,7 @@ boolean read_screen_data(byte size)
   //Updating the bitmap, first getting the position and then updating the bitmap
   position = position << slot;
   used_pairs = used_pairs | position;
-
+  initialized = true;
   return true;
 }
 
@@ -495,7 +496,7 @@ void rotate_lcd_now_simplified()
 
 void loop(void)
 {
-  if(rotate_lcd == 0)
+  if(rotate_lcd == 0 && initialized)
   {
     //rotate_lcd_now();
     rotate_lcd_now_simplified();
