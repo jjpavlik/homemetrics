@@ -8,7 +8,9 @@
 
 #define LOOP_DELAY 50
 // Number of rotating pairs for the LCD. Pairs are 32 bytes size.
-#define LCD_PAIRS 8
+#define LCD_PAIRS 4
+#define LCD_ROWS 2
+#define LCD_COLUMNS 16
 #define LCD_ROTATION_FACTOR 40
 #define LCD_PAIRS_SIZE 32*LCD_PAIRS
 char available_lcd_pairs[LCD_PAIRS_SIZE];
@@ -103,9 +105,9 @@ void setup(void)
   available_lcd_pairs[24] = ' ';
   available_lcd_pairs[25] = 'a';
   available_lcd_pairs[26] = 'v';
-  available_lcd_pairs[27] = 't';
-  available_lcd_pairs[28] = 'a';
-  available_lcd_pairs[29] = 'i';
+  available_lcd_pairs[27] = 'a';
+  available_lcd_pairs[28] = 'i';
+  available_lcd_pairs[29] = 'l';
   available_lcd_pairs[30] = '.';
   available_lcd_pairs[31] = ' ';
   aux = 32;
@@ -125,7 +127,7 @@ void setup(void)
   buffer_index = 0;
 
   // Start lcd
-  lcd.begin(16, 2);
+  lcd.begin(LCD_COLUMNS, LCD_ROWS);
   update_screen();
 }
 
@@ -296,7 +298,7 @@ boolean read_screen_data(byte size)
   char *aux_addr;
   byte ctr = 0;
   byte boundary = size - 5;// Used to make sure we don't read beyond the what we received.
-  byte rboundary = 16;// To make sure I don't go beyond the size of the LCD row
+  byte rboundary = LCD_COLUMNS;// To make sure I don't go beyond the size of the LCD row
   byte slot;
   byte position = B00000001;
 
@@ -310,7 +312,7 @@ boolean read_screen_data(byte size)
   }
   boundary--;// Because slot is the last byte and was not counting it :)
 
-  aux_addr = &available_lcd_pairs[32*slot];
+  aux_addr = &available_lcd_pairs[(LCD_ROWS*LCD_COLUMNS)*slot];
 
   while(rboundary > 0)
   {
@@ -330,9 +332,9 @@ boolean read_screen_data(byte size)
   read = &receive_buffer[5 + ctr];
 
   ctr = 0;
-  rboundary = 16;
+  rboundary = LCD_COLUMNS;
 
-  aux_addr = &available_lcd_pairs[32*slot + 16];
+  aux_addr = &available_lcd_pairs[(LCD_ROWS*LCD_COLUMNS)*slot + LCD_COLUMNS];
 
   while(rboundary > 0)
   {
@@ -369,11 +371,11 @@ boolean update_screen()
 {
   int ctr=0;
   char *addr;
-  addr = &available_lcd_pairs[current_pair*32];
+  addr = &available_lcd_pairs[current_pair*(LCD_ROWS*LCD_COLUMNS)];
 
   lcd.clear();
 
-  while(ctr<16)
+  while(ctr<LCD_COLUMNS)
   {
     lcd.setCursor(ctr,0);
     lcd.write(addr[ctr]);
@@ -381,10 +383,10 @@ boolean update_screen()
   }
 
   ctr=0;
-  while(ctr<16)
+  while(ctr<LCD_COLUMNS)
   {
     lcd.setCursor(ctr,1);
-    lcd.write(addr[ctr+16]);
+    lcd.write(addr[ctr+LCD_COLUMNS]);
     ctr++;
   }
   return true;
@@ -481,7 +483,7 @@ void rotate_lcd_now_simplified()
 {
   // So now, try the moving current_pair forward and check if that pair is enabled in the bitmap.
   current_pair++;
-  if(current_pair>7)
+  if(current_pair>=LCD_PAIRS)
   {
     current_pair=0;
   }
