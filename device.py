@@ -95,11 +95,12 @@ class Arduino(Device):
         message.append(sensor_id)			#B3 is actually the data format, so this is just a placeholder here.
 
         logging.debug("About to write to sensor " + self.available_sensors[sensor_id]['name'] + " type " + str(self.available_sensors[sensor_id]['type']))
-
+        logging.debug("Data to be written: " + str(data))
         if self.available_sensors[sensor_id]['type'] == 32: #Sensor is actually a LCD display
             temp = str(data[0])
             description = data[1]
-            message.append(5 + len(temp) + 1 + len(description)) #B4 SIZE
+            slot = data[2]
+            message.append(5 + len(temp) + 1 + len(description) + 1 + 1) #B4 SIZE
             #Copy the letters one by one on the message payload.
             aux = list(temp)
             for i in aux:
@@ -108,6 +109,8 @@ class Arduino(Device):
             aux = list(description)
             for i in aux:
                 message.append(ord(i))
+            message.append(ord('\n'))
+            message.append(ord(str(slot)) - 48)#Terrible workaround
         else:
             message.append(5) #B4
 

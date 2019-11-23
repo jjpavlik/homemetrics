@@ -108,6 +108,7 @@ def main():
     global TERMINATE
 
     debug = False
+    owo = False
 
     signal.signal(signal.SIGTERM, term_handler)
 
@@ -116,11 +117,6 @@ def main():
     frequency = int(configuration['COLLECTOR']['frequency'])
 
     FORMAT = '%(asctime)s - %(name)s - %(levelname)s - %(message)s'
-
-    if debug:
-        logging.basicConfig(filename="collector.log", format=FORMAT, level=logging.DEBUG)
-    else:
-        logging.basicConfig(filename="collector.log", format=FORMAT, level=logging.INFO)
 
     try:
         opts, args = getopt.getopt(sys.argv[1:], "hdf:", ["help", "debug", "openweather"])
@@ -138,17 +134,25 @@ def main():
             frequency = int(a)
         elif o in ("--openweather"):
             import openweather
-            try:
-                ow = openweather.Openweather(
-                    configuration['COLLECTOR']['openweathermap-key'],
-                    configuration['COLLECTOR']['openweathermap-name'],
-                    configuration['COLLECTOR']['openweathermap-city-id'])
-                openweather_enabled = True
-            except Exception as e:
-                logging.warn("OpenWeather has been disabled :(... due to " + str(e))
-                openweather_enabled = False
+            owo = True
         else:
             assert False, "Unhandled option"
+
+    if debug:
+        logging.basicConfig(filename="collector.log", format=FORMAT, level=logging.DEBUG)
+    else:
+        logging.basicConfig(filename="collector.log", format=FORMAT, level=logging.INFO)
+
+    if owo:
+        try:
+            ow = openweather.Openweather(
+                configuration['COLLECTOR']['openweathermap-key'],
+                configuration['COLLECTOR']['openweathermap-name'],
+                configuration['COLLECTOR']['openweathermap-city-id'])
+            openweather_enabled = True
+        except Exception as e:
+            logging.warn("OpenWeather has been disabled :(... due to " + str(e))
+            openweather_enabled = False
 
     logging.info("Loading " + DEVICES_FILE)
     with open(DEVICES_FILE) as f:
@@ -177,7 +181,7 @@ def main():
             dev.disable()
 
     starttime = time.time()
-
+    last_measure = 0.0
     while not TERMINATE:
         timestamp = str(datetime.datetime.now())
         for dev in DEVICES:
@@ -188,6 +192,12 @@ def main():
                 logging.debug("Sensor read: " + str(measure))
                 store_collected_metric(configuration, timestamp, dev.get_name(), dev.get_sensor_name(sensor), measure)
                 update_temperature_table("livingroom", measure, timestamp)
+                measure = float(measure)
+                if last_measure != measure:
+                    logging.debug("New measure " + str(measure) + " for Living room, so pushing it to LCD.")
+                    last_measure = measure
+                    sensor = 2 #Hardcoding screen1 sensor :)
+                    dev.write_sensor(sensor, (measure, "Living Room", 2))
 
                 if openweather_enabled:
                     sensor = 2
@@ -196,7 +206,7 @@ def main():
                     temperature = ow.get_temperature()
                     if len(weather) > 16:#I should keep an eye on the length of "description" since this will go to the 16x2 LCD display
                             weather = weather[:16]
-                    dev.write_sensor(sensor, (temperature, weather))
+                    dev.write_sensor(sensor, (temperature, weather, 1))
             else:
                 logging.warn("Skipping " + dev.get_name() + " because is disabled.")
         back_to_sleep_for = (frequency - ((time.time() - starttime)%frequency))
