@@ -285,7 +285,8 @@ boolean send_sensor_read(byte packet_protocol_version, byte packet_id, byte sens
 boolean read_screen_data(byte size)
 {
   // Data should start in B5 in receive_buffer. Two strings should come, separated by '\n'
-  byte *read, *aux_addr;
+  byte *read;
+  char *aux_addr;
   byte ctr = 0;
   byte boundary = size - 5;// Used to make sure we don't read beyond the what we received.
   byte rboundary = 16;// To make sure I don't go beyond the size of the LCD row
@@ -300,6 +301,7 @@ boolean read_screen_data(byte size)
     return_error_code = SLOT_EXCEEDED;
     return false;//This should result in an error back to the Rasp.
   }
+  boundary--;// Because slot is the last byte and was not counting it :)
 
   aux_addr = &available_lcd_pairs[16*slot];
 
