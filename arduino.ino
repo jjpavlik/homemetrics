@@ -496,11 +496,13 @@ void rotate_lcd_now_simplified()
 
 void loop(void)
 {
-  if(rotate_lcd == 0 && initialized)
+  if(rotate_lcd == 0)
   {
-    //rotate_lcd_now();
-    rotate_lcd_now_simplified();
     rotate_lcd = LCD_ROTATION_FACTOR * LOOP_DELAY;
+    if(initialized)
+    {  //rotate_lcd_now();
+      rotate_lcd_now_simplified();
+    }
   }
   if(packet_ready)
   {
