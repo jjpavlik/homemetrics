@@ -373,7 +373,6 @@ boolean update_screen()
 
   lcd.clear();
 
-  lcd.setCursor(0,0);
   while(ctr<16)
   {
     lcd.setCursor(ctr,0);
@@ -382,7 +381,6 @@ boolean update_screen()
   }
 
   ctr=0;
-  lcd.setCursor(0,1);
   while(ctr<16)
   {
     lcd.setCursor(ctr,1);
@@ -478,11 +476,27 @@ void rotate_lcd_now()
   return;
 }
 
+// Dumbly rotates through all the pairs 1 by 1 until it goes back to 0.
+void rotate_lcd_now_simplified()
+{
+  // So now, try the moving current_pair forward and check if that pair is enabled in the bitmap.
+  current_pair++;
+  if(current_pair>7)
+  {
+    current_pair=0;
+  }
+
+  update_screen();
+
+  return;
+}
+
 void loop(void)
 {
   if(rotate_lcd == 0)
   {
-    rotate_lcd_now();
+    //rotate_lcd_now();
+    rotate_lcd_now_simplified();
     rotate_lcd = LCD_ROTATION_FACTOR * LOOP_DELAY;
   }
   if(packet_ready)
