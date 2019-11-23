@@ -303,7 +303,7 @@ boolean read_screen_data(byte size)
   }
   boundary--;// Because slot is the last byte and was not counting it :)
 
-  aux_addr = &available_lcd_pairs[16*slot];
+  aux_addr = &available_lcd_pairs[32*slot];
 
   while(rboundary > 0)
   {
@@ -325,7 +325,7 @@ boolean read_screen_data(byte size)
   ctr = 0;
   rboundary = 16;
 
-  aux_addr = &available_lcd_pairs[16*slot + 16];
+  aux_addr = &available_lcd_pairs[32*slot + 16];
 
   while(rboundary > 0)
   {
