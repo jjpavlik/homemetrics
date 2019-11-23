@@ -485,7 +485,7 @@ void rotate_lcd_now_simplified()
   current_pair++;
   if(current_pair>=LCD_PAIRS)
   {
-    current_pair=0;
+    current_pair=1;//Instead of starting from 0 and showing the default text, I directly loop now between [1,LCD_PAIRS)
   }
 
   update_screen();
