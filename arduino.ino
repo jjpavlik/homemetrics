@@ -316,11 +316,10 @@ boolean read_screen_data(byte size)
     }
     rboundary--;
   }
-
+  ctr++;
   boundary = boundary - ctr;
+  read = &receive_buffer[5 + ctr];
 
-  read = read + ctr + 1;
-  boundary = boundary - 1;
   ctr = 0;
   rboundary = 16;
 
@@ -339,8 +338,9 @@ boolean read_screen_data(byte size)
     }
     rboundary--;
   }
-
+  ctr++;
   boundary = boundary - ctr;
+
   if(boundary != 0)
   {// This means we have either read beyond the packet or there's left to read.
     return_error_code = NOT_ALL_READ;
