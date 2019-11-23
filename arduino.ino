@@ -330,13 +330,28 @@ boolean read_screen_data(byte size)
 // First needs to pull out the two strings one for each row :(
 boolean update_screen()
 {
-  // Set cursor position to write
-  lcd.clear();
-  lcd.setCursor(0,0);
-  lcd.print(available_lcd_pairs[0]);
-  lcd.setCursor(0,1);
-  lcd.print(available_lcd_pairs[16]);
+  int ctr=0;
+  char *addr;
+  addr = &available_lcd_pairs[current_pair*32];
 
+  lcd.clear();
+
+  lcd.setCursor(0,0);
+  while(ctr<16)
+  {
+    lcd.setCursor(ctr,0);
+    lcd.write(addr[ctr]);
+    ctr++;
+  }
+
+  ctr=0;
+  lcd.setCursor(0,1);
+  while(ctr<16)
+  {
+    lcd.setCursor(ctr,1);
+    lcd.write(addr[ctr+16]);
+    ctr++;
+  }
   return true;
 }
 
@@ -413,11 +428,7 @@ void rotate_lcd_now()
     current_pair=0;//Resesting it for now, but this should go to at least 1 to prevent showing the default data in pair[0]
   }
 
-  lcd.clear();
-  lcd.setCursor(0,0);
-  lcd.print(available_lcd_pairs[16*(current_pair+1)]);
-  lcd.setCursor(0,1);
-  lcd.print(available_lcd_pairs[16*(current_pair+1)+16]);
+  update_screen();
 
   return;
 }
