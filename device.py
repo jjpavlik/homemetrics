@@ -11,6 +11,7 @@ READ = 0  # 0000 ____
 WRITE = 16 # 0001 ____
 PING = 240 # 1111 0000
 CONTROL = 224 #1110 ____
+ERROR 192 # 1100 ____
 #Lower nible B2 defines the sensor ...
 GET_SENSORS = 15 #____ 1111
 
@@ -229,7 +230,10 @@ class Arduino(Device):
         self.comm.send_message(message)
 
     def _receive_message(self):
-        return self.comm.receive_message()
+        received_message = self.comm.receive_message()
+        if received_message[2] == ERROR:
+            logging.error("Response to message ID "+ str(received_message[1]) +" returned error code " + str(receive_message[3]))
+        return message
 
 class Dummy(Device):
     """
