@@ -121,6 +121,9 @@ class Arduino(Device):
         self._send_message(message)
         received_message = self._receive_message()
         logging.debug("Received message " + str(received_message))
+        if received_message[2] == ERROR:
+            return False
+        return True
 
     def _good_response(sent_id, received_id):
         """
