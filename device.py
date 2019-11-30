@@ -14,6 +14,7 @@ CONTROL = 224 #1110 ____
 ERROR 192 # 1100 ____
 #Lower nible B2 defines the sensor ...
 GET_SENSORS = 15 #____ 1111
+GET_SENSORS = 14 #____ 1110
 
 
 
@@ -31,6 +32,7 @@ class Device():
         self.message_id = 0
         self.available_sensors = []
         self.enabled = False
+        self.metrics = {}
 
     def get_location(self):
         return self.location
@@ -136,6 +138,65 @@ class Arduino(Device):
 
     def get_sensor_name(self, id):
         return self.available_sensors[id]['name']
+
+    def _parse_metrics(self, message):
+        """
+        Parse the sensors provided by the device. Remember format is:
+        metrics_name\nmetric2_name\tvalue\nvalue2
+        """
+        message_length = len(message)
+        index = 5
+        start = index
+        names = []
+        name = ""
+        #Get the names
+        while index < message_length and message[index] != '\t':
+            name = name.join(message[index].decode('ascii'))
+            index = index + 1
+            if message[index] == '\n':
+                names.append(name)
+                name = ""
+                index = index + 1
+
+        if index == message_length:
+            logging.error("Something went bad bad while parsing the names of the metrics received from the Arduino.")
+            logging.error(str(message))
+
+        #Get the values
+        index = index + 1
+        values = []
+        value = ""
+        while index < message_length:
+            value = value.join(message[index].decode('ascii'))
+            index = index + 1
+            if message[index] == '\n':
+                values.append(int(value))
+                value = ""
+                index = index + 1
+
+        for n, v in names, values:
+            self.metrics[n] = v
+
+    def get_metrics(self):
+        """
+        Ideally, this function would obtain the available metrics exposed by the Arduino
+        and populate metrics{}
+        """
+        message_id = self._get_message_id()
+        message = bytearray([PROTOCOL|REQUEST]) #B0
+        message.append(message_id)              #B1
+        message.append(CONTROL|GET_METRICS)                    #B2
+        message.append(0)			#B3
+        message.append(5)			#B4
+
+        logging.debug("Message ID " + str(message_id))
+        logging.debug("Sending: " + str(message))
+        self._send_message(message)
+        # Now wait for the response
+        received_message = self._receive_message()
+        logging.debug("Received: " + str(received_message))
+        self._parse_metrics(received_message)
+        return self.metrics
 
     def identify_device_sensors(self):
         """

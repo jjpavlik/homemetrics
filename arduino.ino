@@ -20,7 +20,13 @@ int rotate_lcd = LCD_ROTATION_FACTOR * LOOP_DELAY;//Considering the delay in loo
 byte return_error_code = 0;
 byte bad_writes = 0;// This should be used to track situations where serial.write() didn't send all the bytes it was supossed to.
 boolean initialized = false;
+unsigned int rxpackets = 0;
+unsigned int txpackets = 0;
+unsigned int rxbytes = 0;
+unsigned int txbytes = 0;
+unsigned int errors = 0;
 
+#define METRIC_BUFF_SIZE 6
 // Setup a oneWire instance to communicate with any OneWire devices
 // (not just Maxim/Dallas temperature ICs)
 OneWire oneWire(ONE_WIRE_BUS);
@@ -55,6 +61,7 @@ byte buffer_index;
 #define ERROR 192 // 1100 ____
 //Lower nible defines the sensor ...
 #define GET_SENSORS 15 // ____ 1111
+#define GET_METRICS 14
 #define TEMP1 0
 #define TEMP2 1
 #define SCREEN1 2
@@ -209,6 +216,8 @@ boolean send_error_response(byte packet_protocol_version, byte packet_id)
   response_packet[3] = return_error_code;
   response_packet[4] = 5;
 
+  errors++;
+
   sent = Serial.write(response_packet, 5);
   if(sent == 5)
   {
@@ -261,6 +270,46 @@ boolean send_available_sensors(byte packet_protocol_version, byte packet_id)
       return true;
     }
     return false;
+}
+
+int __uint_to_char_array(byte *array, unsigned int size, usigned int number)
+{
+  int i, rest, mod, base, left, right;
+  byte buff;
+  i = 0;
+  base = 10;
+
+  if(number == 0){
+    array[0]='0';
+    array[1]='\0';
+    return 2;
+  }
+
+  do{
+    mod = number % base;
+    array[i] = '0' + mod;
+    number = number / base;
+    i++;
+  }while(number > 0 && i < size);
+
+  if(i == size){//Reached size of the array, close the string but return error code
+    array[i-1] = '\0';
+    errors++;
+    return -1;
+  }
+  array[i] = '\0';
+
+  //reversing numbers now
+  left = 0;
+  right = i - 1;
+  while(left <= right){
+    buff = array[left];
+    array[left] = array[right];
+    array[right] = buff;
+    left++;
+    right--;
+  }
+  return i+1;
 }
 
 boolean send_sensor_read(byte packet_protocol_version, byte packet_id, byte sensor)
@@ -393,6 +442,104 @@ boolean update_screen()
   return true;
 }
 
+//This function will return to the Rasp a serie of metrics like:
+// errors
+// [rx|tx]packets
+// [rx|tx]bytes
+boolean send_available_metrics(byte packet_protocol_version, byte packet_id)
+{
+  // Maybe this should be a single global buffer, to prevent taking stack memory in every send_XXX function...
+  byte response_packet[100];
+  int index, limit, res;
+  char metric_buff[METRIC_BUFF_SIZE];// On the Arduino Uno (and other ATmega based boards) an int stores a 16-bit (2-byte) value. So an usigned int [0, 65534] up to 5 characters :P and '\0'
+  limit = 100;//Or whathever the size of the response_packet is, index should be limited by this.
+
+  response_packet[0] = packet_protocol_version | RESPONSE;
+  response_packet[1] = packet_id;
+  response_packet[2] = CONTROL | GET_METRICS;
+  response_packet[3] = 0; // Not used for ping, maybe I should rework the bytes order an put size here instead to prevent this useless byte
+  response_packet[4] = 19; // HEY, can we automatically calculate the size?
+  response_packet[5] = 'e';
+  response_packet[6] = 'r';
+  response_packet[7] = 'r';
+  response_packet[8] = '\n';
+  response_packet[9] = 'r';
+  response_packet[10] = 'x';
+  response_packet[11] = 'b';
+  response_packet[12] = '\n';
+  response_packet[13] = 't';
+  response_packet[14] = 'x';
+  response_packet[15] = 'b';
+  response_packet[16] = '\n';
+  response_packet[17] = 'r';
+  response_packet[18] = 'x';
+  response_packet[19] = 'p';
+  response_packet[20] = '\n';
+  response_packet[21] = 't';
+  response_packet[22] = 'x';
+  response_packet[22] = 'p';
+  response_packet[23] = '\t';
+
+  index = 24;
+  //gets errors metric
+  res = __uint_to_char_array(&response_packet[index], METRIC_BUFF_SIZE, errors);//instead of using a different buffer use response_packet :)
+  if(res == -1){
+    return false;
+  }
+  response_packet[index + res - 1] = '\n';
+  if((index + res) >= limit){
+    return false;
+  }
+  index = index + res;
+  //gets rxbytes
+  res = __uint_to_char_array(&response_packet[index], METRIC_BUFF_SIZE, rxbytes);//instead of using a different buffer use response_packet :)
+  if(res == -1){
+    return false;
+  }
+  response_packet[index + res - 1] = '\n';
+  if((index + res) >= limit){
+    return false;
+  }
+  index = index + res;
+  //gets txbytes
+  res = __uint_to_char_array(&response_packet[index], METRIC_BUFF_SIZE, txbytes);//instead of using a different buffer use response_packet :)
+  if(res == -1){
+    return false;
+  }
+  response_packet[index + res - 1 ] = '\n';
+  if((index + res) >= limit){
+    return false;
+  }
+  index = index + res;
+  //gets rxpackets
+  res = __uint_to_char_array(&response_packet[index], METRIC_BUFF_SIZE, rxpackets);//instead of using a different buffer use response_packet :)
+  if(res == -1){
+    return false;
+  }
+  response_packet[index + res - 1] = '\n';
+  if((index + res) >= limit){
+    return false;
+  }
+  index = index + res;
+  //gets txpackets
+  res = __uint_to_char_array(&response_packet[index], METRIC_BUFF_SIZE, txpackets);//instead of using a different buffer use response_packet :)
+  if(res == -1){
+    return false;
+  }
+  response_packet[index + res - 1] = '\n';
+  if((index + res) >= limit){
+    return false;
+  }
+  index = index + res;
+
+  sent = Serial.write(response_packet, index);
+  if(sent == index)
+  {
+    return true;
+  }
+  return false;
+}
+
 // This function reads the full packet and actions on it according to whether it's a request or a response
 boolean process_packet()
 {
@@ -407,6 +554,9 @@ boolean process_packet()
   packet_operation_specific = receive_buffer[2] & 15;
   packet_data_format = receive_buffer[3];
   packet_size = receive_buffer[4];
+
+  rxpackets++;
+  rxbytes = rxbytes + packet_size*8;
 
   // Is it a request or a response?
   if(packet_type == 0)
@@ -423,6 +573,9 @@ boolean process_packet()
         break;
       case CONTROL | GET_SENSORS:
         send_available_sensors(packet_protocol_version, packet_id);
+        break;
+      case CONTROL | GET_METRICS:
+        send_available_metrics(packet_protocol_version, packet_id);
         break;
       case READ | TEMP1:
         send_sensor_read(packet_protocol_version, packet_id, TEMP1);

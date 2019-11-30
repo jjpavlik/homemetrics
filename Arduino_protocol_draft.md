@@ -85,9 +85,17 @@ SLOT is a one byte number that defines the LCD slot the text will go to.
 ```
 0001 1111 - PACKET_ID - 0001 0010 - 0000 0000 - 0000 0101
 ```
-#### ERROR RESPONSE (5 bytes):
+### ERROR RESPONSE (5 bytes):
 Error message, high nible of B2 is 1100 (low nible can be anything) and B3 contains de actual error code to match
 later on with the function within the Arduino.
 ```
 0001 1111 - PACKET_ID - 1100 0010 - ERROR_CODE - 0000 0101
 ```
+
+### CONTROL PACKET (5 bytes)
+These sort of packets are intended to pull certain information or to send other orders to the Arduino.
+
+#### CONTROL GET_METRICS
+This message is intended to pull metrics from the arduino in a format similar to read available devices
+
+metrics_name\nmetric2_name\tvalue\nvalue2
