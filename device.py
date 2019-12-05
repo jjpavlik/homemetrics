@@ -145,19 +145,15 @@ class Arduino(Device):
         metrics_name\nmetric2_name\tvalue\nvalue2
         """
         message_length = len(message)
-        index = 5
-        start = index
-        names = []
-        name = ""
         #Get the names and values
         aux = message[index:message_length].decode('ascii')
         data = aux.split('\t')
         names = data[0].split('\n')
         values = data[1].split('\n')
 
-        if index[4] != message_length:
+        if message[4] != message_length:
             logging.error("Something went bad bad while parsing the names of the metrics received from the Arduino.")
-            logging.error("Size according to the message is " + str(index[4]))
+            logging.error("Size according to the message is " + str(message[4]))
 
         for n, v in names, values:
             self.metrics[n] = v
