@@ -147,7 +147,7 @@ class Arduino(Device):
         message_length = len(message)
         data_start = 5
         #Get the names and values
-        aux = message[data_start:message_length - 1].decode('ascii')
+        aux = message[data_start:message_length].decode('ascii')
         data = aux.split('\t')
         names = data[0].split('\n')
         values = data[1].split('\n')
@@ -157,6 +157,8 @@ class Arduino(Device):
             logging.error("Size according to the message is " + str(message[4]))
 
         for i in range(len(names)):
+            if values[i] == '':#Nasty patch for when the last value is a 0 and the split gets rid of that right away.
+                values[i] = 0
             self.metrics[names[i]] = values[i]
 
     def get_metrics(self):

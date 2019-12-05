@@ -285,8 +285,7 @@ int __uint_to_char_array(byte *array, unsigned int size, unsigned int number)
 
   if(number == 0){
     array[0]='0';
-    array[1]='\0';
-    return 2;
+    return 1;
   }
 
   do{
@@ -301,7 +300,6 @@ int __uint_to_char_array(byte *array, unsigned int size, unsigned int number)
     errors++;
     return -1;
   }
-  array[i] = '\0';
 
   //reversing numbers now
   left = 0;
@@ -313,7 +311,7 @@ int __uint_to_char_array(byte *array, unsigned int size, unsigned int number)
     left++;
     right--;
   }
-  return i+1;
+  return i;
 }
 
 boolean send_sensor_read(byte packet_protocol_version, byte packet_id, byte sensor)
@@ -535,7 +533,7 @@ boolean send_available_metrics(byte packet_protocol_version, byte packet_id)
   if((index + res) >= limit){
     return false;
   }
-  index = index + res - 1;
+  index = index + res;
 
   //Update size of the packet with the new information
   response_packet[4] = index;
