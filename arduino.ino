@@ -531,7 +531,7 @@ boolean send_available_metrics(byte packet_protocol_version, byte packet_id)
   if(res == -1){
     return false;
   }
-  response_packet[index + res - 1] = '\n';
+
   if((index + res) >= limit){
     return false;
   }

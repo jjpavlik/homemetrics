@@ -149,30 +149,15 @@ class Arduino(Device):
         start = index
         names = []
         name = ""
-        #Get the names
-        while index < message_length and message[index] != '\t':
-            name = name.join(message[index].decode('ascii'))
-            index = index + 1
-            if message[index] == '\n':
-                names.append(name)
-                name = ""
-                index = index + 1
+        #Get the names and values
+        aux = message[index:message_length].decode('ascii')
+        data = aux.split('\t')
+        names = data[0].split('\n')
+        values = data[1].split('\n')
 
-        if index == message_length:
+        if index[4] != message_length:
             logging.error("Something went bad bad while parsing the names of the metrics received from the Arduino.")
-            logging.error(str(message))
-
-        #Get the values
-        index = index + 1
-        values = []
-        value = ""
-        while index < message_length:
-            value = value.join(message[index].decode('ascii'))
-            index = index + 1
-            if message[index] == '\n':
-                values.append(int(value))
-                value = ""
-                index = index + 1
+            logging.error("Size according to the message is " + str(index[4]))
 
         for n, v in names, values:
             self.metrics[n] = v
