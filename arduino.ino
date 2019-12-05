@@ -535,7 +535,7 @@ boolean send_available_metrics(byte packet_protocol_version, byte packet_id)
   if((index + res) >= limit){
     return false;
   }
-  index = index + res;
+  index = index + res - 1;
 
   //Update size of the packet with the new information
   response_packet[4] = index;

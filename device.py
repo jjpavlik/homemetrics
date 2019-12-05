@@ -147,7 +147,7 @@ class Arduino(Device):
         message_length = len(message)
         data_start = 5
         #Get the names and values
-        aux = message[data_start:message_length].decode('ascii')
+        aux = message[data_start:message_length - 1].decode('ascii')
         data = aux.split('\t')
         names = data[0].split('\n')
         values = data[1].split('\n')
