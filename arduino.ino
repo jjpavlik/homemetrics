@@ -272,7 +272,11 @@ boolean send_available_sensors(byte packet_protocol_version, byte packet_id)
     return false;
 }
 
-int __uint_to_char_array(byte *array, unsigned int size, usigned int number)
+/***
+Turns an unsigned integer into its string representation on *array.
+Returns the number of chars written in *array
+***/
+int __uint_to_char_array(byte *array, unsigned int size, unsigned int number)
 {
   int i, rest, mod, base, left, right;
   byte buff;
@@ -450,7 +454,8 @@ boolean send_available_metrics(byte packet_protocol_version, byte packet_id)
 {
   // Maybe this should be a single global buffer, to prevent taking stack memory in every send_XXX function...
   byte response_packet[100];
-  int index, limit, res;
+  int limit, res, sent;
+  byte index;
   char metric_buff[METRIC_BUFF_SIZE];// On the Arduino Uno (and other ATmega based boards) an int stores a 16-bit (2-byte) value. So an usigned int [0, 65534] up to 5 characters :P and '\0'
   limit = 100;//Or whathever the size of the response_packet is, index should be limited by this.
 
@@ -458,7 +463,7 @@ boolean send_available_metrics(byte packet_protocol_version, byte packet_id)
   response_packet[1] = packet_id;
   response_packet[2] = CONTROL | GET_METRICS;
   response_packet[3] = 0; // Not used for ping, maybe I should rework the bytes order an put size here instead to prevent this useless byte
-  response_packet[4] = 19; // HEY, can we automatically calculate the size?
+  response_packet[4] = 0; // HEY, can we automatically calculate the size?
   response_packet[5] = 'e';
   response_packet[6] = 'r';
   response_packet[7] = 'r';
@@ -477,10 +482,10 @@ boolean send_available_metrics(byte packet_protocol_version, byte packet_id)
   response_packet[20] = '\n';
   response_packet[21] = 't';
   response_packet[22] = 'x';
-  response_packet[22] = 'p';
-  response_packet[23] = '\t';
+  response_packet[23] = 'p';
+  response_packet[24] = '\t';
 
-  index = 24;
+  index = 25;
   //gets errors metric
   res = __uint_to_char_array(&response_packet[index], METRIC_BUFF_SIZE, errors);//instead of using a different buffer use response_packet :)
   if(res == -1){
@@ -531,6 +536,9 @@ boolean send_available_metrics(byte packet_protocol_version, byte packet_id)
     return false;
   }
   index = index + res;
+
+  //Update size of the packet with the new information
+  response_packet[4] = index;
 
   sent = Serial.write(response_packet, index);
   if(sent == index)
