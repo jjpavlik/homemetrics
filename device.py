@@ -156,8 +156,8 @@ class Arduino(Device):
             logging.error("Something went bad bad while parsing the names of the metrics received from the Arduino.")
             logging.error("Size according to the message is " + str(message[4]))
 
-        for n, v in names, values:
-            self.metrics[n] = v
+        for i in range(len(names)):
+            self.metrics[names[i]] = values[i]
 
     def get_metrics(self):
         """
