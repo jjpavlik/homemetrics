@@ -145,8 +145,9 @@ class Arduino(Device):
         metrics_name\nmetric2_name\tvalue\nvalue2
         """
         message_length = len(message)
+        data_start = 5
         #Get the names and values
-        aux = message[index:message_length].decode('ascii')
+        aux = message[data_start:message_length].decode('ascii')
         data = aux.split('\t')
         names = data[0].split('\n')
         values = data[1].split('\n')
