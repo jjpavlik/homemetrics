@@ -100,7 +100,10 @@ class Arduino(Device):
         logging.debug("About to write to sensor " + self.available_sensors[sensor_id]['name'] + " type " + str(self.available_sensors[sensor_id]['type']))
         logging.debug("Data to be written: " + str(data))
         if self.available_sensors[sensor_id]['type'] == 32: #Sensor is actually a LCD display
-            temp = str(data[0])
+            if len(data[0])>16 or len(datap[1])>16:
+                logging.error("len(data[0])=" + str(len(data[0])) + " len(data[1])=" + str(len(data[1])))
+                return False# This should probably raise an
+            temp = data[0]
             description = data[1]
             slot = data[2]
             message.append(5 + len(temp) + 1 + len(description) + 1 + 1) #B4 SIZE

@@ -197,7 +197,7 @@ def main():
                     logging.debug("New measure " + str(measure) + " for Living room, so pushing it to LCD.")
                     last_measure = measure
                     sensor = 2 #Hardcoding screen1 sensor :)
-                    dev.write_sensor(sensor, (measure, "Living Room", 2))
+                    dev.write_sensor(sensor, (str(measure), "Living Room", 2))
 
                 if openweather_enabled:
                     sensor = 2
@@ -206,7 +206,7 @@ def main():
                     temperature = ow.get_temperature()
                     if len(weather) > 16:#I should keep an eye on the length of "description" since this will go to the 16x2 LCD display
                             weather = weather[:16]
-                    dev.write_sensor(sensor, (temperature, weather, 1))
+                    dev.write_sensor(sensor, (str(temperature), weather, 1))
 
                 metrics = dev.get_metrics()
                 logging.debug("Metrics received: " + str(metrics))
