@@ -8,7 +8,7 @@
 
 #define LOOP_DELAY 50
 // Number of rotating pairs for the LCD. Pairs are 32 bytes size.
-#define LCD_PAIRS 4
+#define LCD_PAIRS 6
 #define LCD_ROWS 2
 #define LCD_COLUMNS 16
 #define LCD_ROTATION_FACTOR 40
@@ -506,50 +506,60 @@ boolean send_available_metrics(byte packet_protocol_version, byte packet_id)
   //gets errors metric
   res = __uint_to_char_array(&response_packet[index], METRIC_BUFF_SIZE, errors);//instead of using a different buffer use response_packet :)
   if(res == -1){
+    errors++;
     return false;
   }
   response_packet[index + res - 1] = '\n';
   if((index + res) >= limit){
+    errors++;
     return false;
   }
   index = index + res;
   //gets rxbytes
   res = __uint_to_char_array(&response_packet[index], METRIC_BUFF_SIZE, rxbytes);//instead of using a different buffer use response_packet :)
   if(res == -1){
+    errors++;
     return false;
   }
   response_packet[index + res - 1] = '\n';
   if((index + res) >= limit){
+    errors++;
     return false;
   }
   index = index + res;
   //gets txbytes
   res = __uint_to_char_array(&response_packet[index], METRIC_BUFF_SIZE, txbytes);//instead of using a different buffer use response_packet :)
   if(res == -1){
+    errors++;
     return false;
   }
   response_packet[index + res - 1 ] = '\n';
   if((index + res) >= limit){
+    errors++;
     return false;
   }
   index = index + res;
   //gets rxpackets
   res = __uint_to_char_array(&response_packet[index], METRIC_BUFF_SIZE, rxpackets);//instead of using a different buffer use response_packet :)
   if(res == -1){
+    errors++;
     return false;
   }
   response_packet[index + res - 1] = '\n';
   if((index + res) >= limit){
+    errors++;
     return false;
   }
   index = index + res;
   //gets txpackets
   res = __uint_to_char_array(&response_packet[index], METRIC_BUFF_SIZE, txpackets);//instead of using a different buffer use response_packet :)
   if(res == -1){
+    errors++;
     return false;
   }
 
   if((index + res) >= limit){
+    errors++;
     return false;
   }
   index = index + res;
