@@ -210,6 +210,9 @@ def main():
 
                 metrics = dev.get_metrics()
                 logging.debug("Metrics received: " + str(metrics))
+                dev.write_sensor(sensor, ("rxb: " + str(metrics["rxb"]),"rxp: " + str(metrics["rxp"]), 3))
+                dev.write_sensor(sensor, ("txb: " + str(metrics["txb"]),"txp: " + str(metrics["txp"]), 4))
+                dev.write_sensor(sensor, ("ERRORS ",str(metrics["err"]), 5))
             else:
                 logging.warn("Skipping " + dev.get_name() + " because is disabled.")
         back_to_sleep_for = (frequency - ((time.time() - starttime)%frequency))
