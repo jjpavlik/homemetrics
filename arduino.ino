@@ -181,8 +181,11 @@ boolean send_ping_response(byte packet_protocol_version, byte packet_id)
   sent = Serial.write(response_packet, 5);
   if(sent == 5)
   {
+    txbytes = txbytes + sent;
+    txpackets++;
     return true;
   }
+  errors++;
   return false;
 }
 
@@ -200,8 +203,11 @@ boolean send_write_response(byte packet_protocol_version, byte packet_id)
   sent = Serial.write(response_packet, 5);
   if(sent == 5)
   {
+    txbytes = txbytes + sent;
+    txpackets++;
     return true;
   }
+  errors++;
   return false;
 }
 
@@ -221,8 +227,11 @@ boolean send_error_response(byte packet_protocol_version, byte packet_id)
   sent = Serial.write(response_packet, 5);
   if(sent == 5)
   {
+    txbytes = txbytes + sent;
+    txpackets++;
     return true;
   }
+  errors++;
   return false;
 }
 
@@ -267,8 +276,11 @@ boolean send_available_sensors(byte packet_protocol_version, byte packet_id)
     sent = Serial.write(response_packet, 28);
     if(sent == 28)
     {
+      txbytes = txbytes + sent;
+      txpackets++;
       return true;
     }
+    errors++;
     return false;
 }
 
@@ -334,6 +346,13 @@ boolean send_sensor_read(byte packet_protocol_version, byte packet_id, byte sens
             dtostrf(temp, 4, 1, &response_packet[5]); //So the first byte should start here, and considering precision is 1, this should be up to 4 bytes.
             response_packet[4] = 9;
             sent = Serial.write(response_packet, 9);
+            if(sent == 9)
+            {
+              txbytes = txbytes + sent;
+              txpackets++;
+              return true;
+            }
+            errors++;
         break;
     }
     return true;
@@ -541,8 +560,11 @@ boolean send_available_metrics(byte packet_protocol_version, byte packet_id)
   sent = Serial.write(response_packet, index);
   if(sent == index)
   {
+    txbytes = txbytes + sent;
+    txpackets++;
     return true;
   }
+  errors++;
   return false;
 }
 
