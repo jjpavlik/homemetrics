@@ -98,4 +98,12 @@ These sort of packets are intended to pull certain information or to send other 
 #### CONTROL GET_METRICS
 This message is intended to pull metrics from the arduino in a format similar to read available devices
 
-metrics_name\nmetric2_name\tvalue\nvalue2
+```
+0001 1111 - PACKET_ID - CONTROL | GET_METRICS - 0000 0000 - 0000 0101
+```
+
+Response packet like  
+
+```
+0001 1111 - PACKET_ID - CONTROL | GET_METRICS - 0000 0000 - 0000 0101 - metric_name\nmetric2_name\tvalue\nvalue2
+```
