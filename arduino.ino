@@ -509,48 +509,48 @@ boolean send_available_metrics(byte packet_protocol_version, byte packet_id)
     errors++;
     return false;
   }
-  response_packet[index + res - 1] = '\n';
+  response_packet[index + res] = '\n';
   if((index + res) >= limit){
     errors++;
     return false;
   }
-  index = index + res;
+  index = index + res + 1;
   //gets rxbytes
   res = __uint_to_char_array(&response_packet[index], METRIC_BUFF_SIZE, rxbytes);//instead of using a different buffer use response_packet :)
   if(res == -1){
     errors++;
     return false;
   }
-  response_packet[index + res - 1] = '\n';
+  response_packet[index + res] = '\n';
   if((index + res) >= limit){
     errors++;
     return false;
   }
-  index = index + res;
+  index = index + res + 1;
   //gets txbytes
   res = __uint_to_char_array(&response_packet[index], METRIC_BUFF_SIZE, txbytes);//instead of using a different buffer use response_packet :)
   if(res == -1){
     errors++;
     return false;
   }
-  response_packet[index + res - 1 ] = '\n';
+  response_packet[index + res] = '\n';
   if((index + res) >= limit){
     errors++;
     return false;
   }
-  index = index + res;
+  index = index + res + 1;
   //gets rxpackets
   res = __uint_to_char_array(&response_packet[index], METRIC_BUFF_SIZE, rxpackets);//instead of using a different buffer use response_packet :)
   if(res == -1){
     errors++;
     return false;
   }
-  response_packet[index + res - 1] = '\n';
+  response_packet[index + res] = '\n';
   if((index + res) >= limit){
     errors++;
     return false;
   }
-  index = index + res;
+  index = index + res + 1;
   //gets txpackets
   res = __uint_to_char_array(&response_packet[index], METRIC_BUFF_SIZE, txpackets);//instead of using a different buffer use response_packet :)
   if(res == -1){
