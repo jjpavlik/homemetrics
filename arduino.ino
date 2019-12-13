@@ -20,10 +20,10 @@ int rotate_lcd = LCD_ROTATION_FACTOR * LOOP_DELAY;//Considering the delay in loo
 byte return_error_code = 0;
 byte bad_writes = 0;// This should be used to track situations where serial.write() didn't send all the bytes it was supossed to.
 boolean initialized = false;
-unsigned int rxpackets = 0;
-unsigned int txpackets = 0;
-unsigned int rxbytes = 0;
-unsigned int txbytes = 0;
+unsigned long rxpackets = 0;
+unsigned long txpackets = 0;
+unsigned long rxbytes = 0;
+unsigned long txbytes = 0;
 unsigned int errors = 0;
 
 #define METRIC_BUFF_SIZE 6
@@ -290,7 +290,8 @@ Returns the number of chars written in *array
 ***/
 int __uint_to_char_array(byte *array, unsigned int size, unsigned int number)
 {
-  int i, rest, mod, base, left, right;
+  int i, left, right;
+  long rest, mod, base;
   byte buff;
   i = 0;
   base = 10;
