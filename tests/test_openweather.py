@@ -1,6 +1,6 @@
 import unittest
 import configparser
-import OpenWeather
+import openweather
 
 CONFIGURATION_FILE = "general.conf"
 
