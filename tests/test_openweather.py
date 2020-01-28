@@ -16,12 +16,12 @@ class TestOpenweather(unittest.TestCase):
     def test_get_temperature(self):
         t = self.openweather.get_temperature()
         self.assertIsInstance(t, float)
-        self.assertNotEquals(t, 100) #Default temperature value in openweather.py
+        self.assertNotEqual(t, 100) #Default temperature value in openweather.py
 
     def test_get_weather(self):
         w = self.openweather.get_weather()
         self.assertIsInstance(w, str)
-        self.assertNotEquals(w, "None")
+        self.assertNotEqual(w, "None")
 
 if __name__ == '__main__':
     unittest.main()
