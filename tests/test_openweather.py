@@ -1,5 +1,6 @@
 import unittest
 import configparser
+import OpenWeather
 
 CONFIGURATION_FILE = "general.conf"
 
@@ -12,8 +13,6 @@ class TestOpenweather(unittest.TestCase):
             configuration['COLLECTOR']['openweathermap-name'],
             configuration['COLLECTOR']['openweathermap-city-id'])
 
-        import openweather
-
     def test_get_temperature(self):
         t = self.openweather.get_temperature()
         self.assertIsInstance(t, float)
@@ -21,8 +20,8 @@ class TestOpenweather(unittest.TestCase):
 
     def test_get_weather(self):
         w = self.openweather.get_weather()
-        self.assertIsInstance(w, string)
-        self.assertIsInstance(w, "None")
+        self.assertIsInstance(w, str)
+        self.assertNotEquals(w, "None")
 
 if __name__ == '__main__':
     unittest.main()
