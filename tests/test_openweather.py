@@ -12,6 +12,8 @@ class TestOpenweather(unittest.TestCase):
             configuration['COLLECTOR']['openweathermap-name'],
             configuration['COLLECTOR']['openweathermap-city-id'])
 
+        import openweather
+
     def test_get_temperature(self):
         t = self.openweather.get_temperature()
         self.assertIsInstance(t, float)
