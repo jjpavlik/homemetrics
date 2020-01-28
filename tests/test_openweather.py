@@ -3,7 +3,7 @@ import configparser
 
 CONFIGURATION_FILE = "general.conf"
 
-class TestOpenweather(unittest.Testcase):
+class TestOpenweather(unittest.TestCase):
     def setUp(self):
         configuration = configparser.ConfigParser()
         configuration.read(CONFIGURATION_FILE)
