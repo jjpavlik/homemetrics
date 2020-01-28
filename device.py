@@ -11,8 +11,10 @@ READ = 0  # 0000 ____
 WRITE = 16 # 0001 ____
 PING = 240 # 1111 0000
 CONTROL = 224 #1110 ____
+ERROR = 192 # 1100 ____
 #Lower nible B2 defines the sensor ...
 GET_SENSORS = 15 #____ 1111
+GET_METRICS = 14 #____ 1110
 
 
 
@@ -30,6 +32,7 @@ class Device():
         self.message_id = 0
         self.available_sensors = []
         self.enabled = False
+        self.metrics = {}
 
     def get_location(self):
         return self.location
@@ -95,11 +98,15 @@ class Arduino(Device):
         message.append(sensor_id)			#B3 is actually the data format, so this is just a placeholder here.
 
         logging.debug("About to write to sensor " + self.available_sensors[sensor_id]['name'] + " type " + str(self.available_sensors[sensor_id]['type']))
-
+        logging.debug("Data to be written: " + str(data))
         if self.available_sensors[sensor_id]['type'] == 32: #Sensor is actually a LCD display
-            temp = str(data[0])
+            if len(data[0])>16 or len(data[1])>16:
+                logging.error("len(data[0])=" + str(len(data[0])) + " len(data[1])=" + str(len(data[1])))
+                return False# This should probably raise an
+            temp = data[0]
             description = data[1]
-            message.append(5 + len(temp) + 1 + len(description)) #B4 SIZE
+            slot = data[2]
+            message.append(5 + len(temp) + 1 + len(description) + 1 + 1) #B4 SIZE
             #Copy the letters one by one on the message payload.
             aux = list(temp)
             for i in aux:
@@ -108,6 +115,8 @@ class Arduino(Device):
             aux = list(description)
             for i in aux:
                 message.append(ord(i))
+            message.append(ord('\n'))
+            message.append(ord(str(slot)) - 48)#Terrible workaround
         else:
             message.append(5) #B4
 
@@ -117,6 +126,9 @@ class Arduino(Device):
         self._send_message(message)
         received_message = self._receive_message()
         logging.debug("Received message " + str(received_message))
+        if received_message[2] == ERROR:
+            return False
+        return True
 
     def _good_response(sent_id, received_id):
         """
@@ -129,6 +141,49 @@ class Arduino(Device):
 
     def get_sensor_name(self, id):
         return self.available_sensors[id]['name']
+
+    def _parse_metrics(self, message):
+        """
+        Parse the sensors provided by the device. Remember format is:
+        metrics_name\nmetric2_name\tvalue\nvalue2
+        """
+        message_length = len(message)
+        data_start = 5
+        #Get the names and values
+        aux = message[data_start:message_length].decode('ascii')
+        data = aux.split('\t')
+        names = data[0].split('\n')
+        values = data[1].split('\n')
+
+        if message[4] != message_length:
+            logging.error("Something went bad bad while parsing the names of the metrics received from the Arduino.")
+            logging.error("Size according to the message is " + str(message[4]))
+
+        for i in range(len(names)):
+            if values[i] == '':#Nasty patch for when the last value is a 0 and the split gets rid of that right away.
+                values[i] = 0
+            self.metrics[names[i]] = values[i]
+
+    def get_metrics(self):
+        """
+        Ideally, this function would obtain the available metrics exposed by the Arduino
+        and populate metrics{}
+        """
+        message_id = self._get_message_id()
+        message = bytearray([PROTOCOL|REQUEST]) #B0
+        message.append(message_id)              #B1
+        message.append(CONTROL|GET_METRICS)                    #B2
+        message.append(0)			#B3
+        message.append(5)			#B4
+
+        logging.debug("Message ID " + str(message_id))
+        logging.debug("Sending: " + str(message))
+        self._send_message(message)
+        # Now wait for the response
+        received_message = self._receive_message()
+        logging.debug("Received: " + str(received_message))
+        self._parse_metrics(received_message)
+        return self.metrics
 
     def identify_device_sensors(self):
         """
@@ -226,7 +281,10 @@ class Arduino(Device):
         self.comm.send_message(message)
 
     def _receive_message(self):
-        return self.comm.receive_message()
+        received_message = self.comm.receive_message()
+        if received_message[2] == ERROR:
+            logging.error("Response to message ID "+ str(received_message[1]) +" returned error code " + str(receive_message[3]))
+        return received_message
 
 class Dummy(Device):
     """
