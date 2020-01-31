@@ -288,7 +288,7 @@ boolean send_available_sensors(byte packet_protocol_version, byte packet_id)
 Turns an unsigned integer into its string representation on *array.
 Returns the number of chars written in *array
 ***/
-int __uint_to_char_array(byte *array, unsigned int size, unsigned int number)
+int __uint_to_char_array(byte *array, unsigned int size, unsigned long number)
 {
   int i, left, right;
   long rest, mod, base;
