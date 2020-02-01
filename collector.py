@@ -213,6 +213,12 @@ def main():
                 dev.write_sensor(sensor, ("rxb: " + str(metrics["rxb"]),"rxp: " + str(metrics["rxp"]), 3))
                 dev.write_sensor(sensor, ("txb: " + str(metrics["txb"]),"txp: " + str(metrics["txp"]), 4))
                 dev.write_sensor(sensor, ("ERRORS ",str(metrics["err"]), 5))
+                #Pushing metrics to SQS so pusher.py can then upload them to CW.
+                store_collected_metric(configuration, timestamp, dev.get_name(), "Rxb", metrics["rxb"])
+                store_collected_metric(configuration, timestamp, dev.get_name(), "Rxp", metrics["rxp"])
+                store_collected_metric(configuration, timestamp, dev.get_name(), "Txb", metrics["txb"])
+                store_collected_metric(configuration, timestamp, dev.get_name(), "Txp", metrics["txp"])
+                store_collected_metric(configuration, timestamp, dev.get_name(), "Errors", metrics["err"])
             else:
                 logging.warn("Skipping " + dev.get_name() + " because is disabled.")
         back_to_sleep_for = (frequency - ((time.time() - starttime)%frequency))
