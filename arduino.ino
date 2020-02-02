@@ -26,7 +26,7 @@ unsigned long rxbytes = 0;
 unsigned long txbytes = 0;
 unsigned int errors = 0;
 
-#define METRIC_BUFF_SIZE 6
+#define METRIC_BUFF_SIZE 10
 // Setup a oneWire instance to communicate with any OneWire devices
 // (not just Maxim/Dallas temperature ICs)
 OneWire oneWire(ONE_WIRE_BUS);
