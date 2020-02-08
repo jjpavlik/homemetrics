@@ -1,6 +1,7 @@
 *.conf
 *.devices
 *.log
+*.csv
 __*
 bin*
 include*
