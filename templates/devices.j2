@@ -1,0 +1,11 @@
+[
+        {% for device in devices %}
+        {
+                "device-type":"{{ device.type }}",
+                "device-name":"{{ device.name }}",
+                "access":"{{ device.access }}",
+                "interface":"{{ device.interface }}",
+                "location":"{{ device.location }}",
+        },
+        {% endfor %}
+]
