@@ -74,7 +74,7 @@ def store_collected_metric(parameters, timestamp, device, sensor, value):
     res = __push_message(client, url, message)
     if not res:
         logging.warn("Appending measure to push later (first attemp)")
-        MEASUREMENTS.append(measure)
+        MEASUREMENTS.append(message)
 
 def __push_message(client, url, message):
     """
