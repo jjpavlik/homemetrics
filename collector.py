@@ -68,12 +68,12 @@ def store_collected_metric(parameters, timestamp, device, sensor, value):
         for measure in MEASUREMENTS:
             res = __push_message(client, url, measure)
             if not res:
-                logging.info("Appending measure to push later (n attemp)")
+                logging.warn("Appending measure to push later (n attemp)")
                 MEASUREMENTS.append(measure)
     message = json.dumps({"timestamp":timestamp, "device":device, "sensor":sensor, "value":value})
     res = __push_message(client, url, message)
     if not res:
-        logging.info("Appending measure to push later (first attemp)")
+        logging.warn("Appending measure to push later (first attemp)")
         MEASUREMENTS.append(measure)
 
 def __push_message(client, url, message):
