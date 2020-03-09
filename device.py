@@ -283,7 +283,7 @@ class Arduino(Device):
     def _receive_message(self):
         received_message = self.comm.receive_message()
         if received_message[2] == ERROR:
-            logging.error("Response to message ID "+ str(received_message[1]) +" returned error code " + str(receive_message[3]))
+            logging.error("Response to message ID "+ str(received_message[1]) +" returned error code " + str(received_message[3]))
         return received_message
 
 class Dummy(Device):
