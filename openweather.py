@@ -30,7 +30,7 @@ class Openweather():
             logging.debug("Retrieving new data")
             try:
                 self._get_weather()
-            except Exceprion as e:
+            except Exception as e:
                 logging.warn("Couldn't update temperature and weather from OpenWeather. Maybe next time? Reason: " + str(e))
         else:
             logging.debug("Returning cached temperature")

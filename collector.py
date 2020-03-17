@@ -62,14 +62,20 @@ def store_collected_metric(parameters, timestamp, device, sensor, value):
     """
     client = boto3.client("sqs")
     url = parameters['QUEUE']['url']
+    queue_size = len(MEASUREMENTS)
 
-    if len(MEASUREMENTS) > 0:
-        logging.info("A few measurements queuing locally :O " + str(len(MEASUREMENTS)) + " trying to push them now")
-        for measure in MEASUREMENTS:
+    if queue_size > 0:
+        aux_list = []
+        logging.info("A few measurements queuing locally :O. Queue size " + str(queue_size) + ". Trying to push them now")
+        for ctr in range(queue_size):
+            measure = MEASUREMENTS.pop()
             res = __push_message(client, url, measure)
             if not res:
                 logging.warn("Appending measure to push later (n attemp)")
-                MEASUREMENTS.append(measure)
+                aux_list.append(measure)
+        if len(aux_list) > 0:
+            MEASUREMENTS.extend(aux_list)
+
     message = json.dumps({"timestamp":timestamp, "device":device, "sensor":sensor, "value":value})
     res = __push_message(client, url, message)
     if not res:
