@@ -21,7 +21,13 @@ class SerialUSB(Interface):
         self.real_interface = serial.Serial(self.access, timeout = 2, writeTimeout = 2)
 
     def send_message(self, message):
-        return self.real_interface.write(message)
+        x = 0
+        try:
+            x = self.real_interface.write(message)
+        except serial.serialutil.SerialTimeoutException as e:
+            logging.error("Write operation timed out: \"" + str(e) + "\" while writing: " + str(message))
+        else:
+            return x
 
     def receive_message(self):
         aux = self.real_interface.read(100)

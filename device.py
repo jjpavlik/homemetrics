@@ -16,8 +16,6 @@ ERROR = 192 # 1100 ____
 GET_SENSORS = 15 #____ 1111
 GET_METRICS = 14 #____ 1110
 
-
-
 class Device():
     """
     Generic device Class
@@ -33,6 +31,7 @@ class Device():
         self.available_sensors = []
         self.enabled = False
         self.metrics = {}
+        self.error_counter = 0
 
     def get_location(self):
         return self.location
@@ -54,6 +53,9 @@ class Device():
 
     def enable(self):
         self.enabled = True
+
+    def read_error(self):
+        return self.error_counter
 
 class Arduino(Device):
     """
@@ -278,7 +280,9 @@ class Arduino(Device):
         return False
 
     def _send_message(self, message):
-        self.comm.send_message(message)
+        x = self.comm.send_message(message)
+        if x == 0:
+            self.error_counter = self.error_counter + 1
 
     def _receive_message(self):
         received_message = self.comm.receive_message()
